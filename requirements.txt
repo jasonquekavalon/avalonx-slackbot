@@ -1,2 +1,2 @@
-slackclient
+slackclient==2.0.0
 flask
