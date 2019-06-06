@@ -1,12 +1,14 @@
 from flask import Flask, request, make_response, Response
 import config as cfg
 from slack import WebClient
+import datastore_client
 
 slack_client = WebClient(cfg.SLACK_BOT_TOKEN)
 SLACK_VERIFICATION_TOKEN = cfg.SLACK_VERIFICATION_TOKEN
 app = Flask(__name__)
 
 # Create the datastore client
+ds_client=datastore_client.create_client("alfred-dev")
 
 # TODO: Add checks for all responses from slack api calls
 def verify_slack_token(request_token):
@@ -22,7 +24,7 @@ def slack_test():
     req = request.json
 
     # Save the message to the database using the datastore client
-
+    datastore_client.add_item(ds_client, "message", req)
     # send channel a response
     slack_client.chat_postMessage(channel=req["channel_name"], text=req['message'])
 
