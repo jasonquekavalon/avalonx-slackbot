@@ -6,6 +6,7 @@ slack_client = WebClient(cfg.SLACK_BOT_TOKEN)
 SLACK_VERIFICATION_TOKEN = cfg.SLACK_VERIFICATION_TOKEN
 app = Flask(__name__)
 
+# Create the datastore client
 
 # TODO: Add checks for all responses from slack api calls
 def verify_slack_token(request_token):
@@ -19,6 +20,8 @@ def verify_slack_token(request_token):
 @app.route("/slack/test", methods=["POST"])
 def slack_test():
     req = request.json
+
+    # Save the message to the database using the datastore client
 
     # send channel a response
     slack_client.chat_postMessage(channel=req["channel_name"], text=req['message'])
