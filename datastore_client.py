@@ -53,23 +53,3 @@ def mark_done(client, task_id):
 
         client.put(task)
 
-# Code in this scope will be run when you import this as a module, to avoid this, you can place it in a __main__ statement like so
-if __name__ == '__main__':
-    # Now this code will ONLY be executed when you run `datastore.py` instead of when you run `app.py` and import this file
-    # alternatively, we could use this?
-    datastore_client = datastore.Client()
-    # The kind for the new entity
-    kind = 'Task'
-    # The name/ID for the new entity
-    name = 'sampletask'
-    # The Cloud Datastore key for the new entity
-    task_key = datastore_client.key(kind, name)
-
-    # Prepares the new entity
-    task = datastore.Entity(key=task_key)
-    task['description'] = 'message'
-
-    # Saves the entity
-    datastore_client.put(task)
-
-    print('Saved {}: {}'.format(task.key.name, task['description']))

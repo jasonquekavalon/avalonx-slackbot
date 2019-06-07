@@ -8,7 +8,7 @@ SLACK_VERIFICATION_TOKEN = cfg.SLACK_VERIFICATION_TOKEN
 app = Flask(__name__)
 
 # Create the datastore client
-ds_client=datastore_client.create_client("alfred-dev")
+ds_client=datastore_client.create_client("alfred-dev-1")
 
 # TODO: Add checks for all responses from slack api calls
 def verify_slack_token(request_token):
