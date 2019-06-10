@@ -13,11 +13,6 @@ def create_client(project_id):
     return datastore.Client(project_id)
 
 
-def get_item(client, kind, id):
-    """Get a specific item from Datastore by id"""
-    # Code to get an item in Datastore ;)
-    pass  # Replace this with `return "whatever you want to return when done"`
-
 
 def add_item(client, kind, data):
     """
@@ -38,6 +33,13 @@ def add_item(client, kind, data):
 
     return entity.key
 
+def get_item(client, kind, id):
+    """Get a specific item from Datastore by id"""
+    # Code to get an item in Datastore ;)
+
+    
+
+    pass  # Replace this with `return "whatever you want to return when done"`
 
 # to indicate the task is complete
 def mark_done(client, task_id):
