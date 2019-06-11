@@ -33,33 +33,30 @@ def add_item(client, kind, data):
 
     return entity.key
 
-def get_item(client, kind, id):
+def get_item(client, kind, message_id):
     """Get a specific item from Datastore by id"""
     # Code to get an item in Datastore ;)
 
     query = client.query(kind)
-    message = query.fetch(id)
+    message = query.fetch(message_id)
     return message
 
-    #message_id = str(uuid.uuid4())
-    #message_key = client.key(kind, message_id)
-    #query = client.query(kind)
-    #message_entity = datastore.Entity(query)
-    #return message_entity.key
-      # Replace this with `return "whatever you want to return when done"`
-pass 
-
-# to indicate the task is complete
-def mark_done(client, task_id):
+# to indicate the task is complete or pending 
+""" def mark_done(client, data):
     with client.transaction():
-        key = client.key('message', task_id)
+        key = client.key('message', ds_id)
         task = client.get(key)
 
         if not task:
             raise ValueError(
-                'Task {} does not exist.'.format(task_id))
+                'Task {} does not exist.'.format(ds_id))
+        else:
 
-        task['done'] = True
+            if task['done'] = False:
+                print("Pending") 
 
-        client.put(task)
+            else:
+                client.put(task)
+                print("Saved") """
+
 
