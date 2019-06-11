@@ -33,6 +33,12 @@ def slash_hello():
     return make_response("", 200)
 
 
+def fake_validation(something_to_validate):
+    if something_to_validate == "Hello":
+        return True
+    return False
+
+
 # Start the Flask server
 if __name__ == "__main__":
     app.run()
