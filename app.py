@@ -2,6 +2,7 @@ from flask import Flask, request, make_response, Response
 import config as cfg
 from slack import WebClient
 import datastore_client
+import uuid
 
 slack_client = WebClient(cfg.SLACK_BOT_TOKEN)
 SLACK_VERIFICATION_TOKEN = cfg.SLACK_VERIFICATION_TOKEN
@@ -30,6 +31,12 @@ def slack_test():
 
     return make_response("", 200)
 
+@app.route("/slack/get", method=["GET"])
+def slack_get():
+    message_id=str(uuid.uuid4())
+    # Get the message from the database using the datastore client
+    datastore_client.get_item(ds_client, "message", message_id)
+pass
 
 @app.route("/hello", methods=["POST"])
 def slash_hello():

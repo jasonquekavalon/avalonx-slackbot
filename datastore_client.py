@@ -37,14 +37,22 @@ def get_item(client, kind, id):
     """Get a specific item from Datastore by id"""
     # Code to get an item in Datastore ;)
 
-    
+    query = client.query(kind)
+    message = query.fetch(id)
+    return message
 
-    pass  # Replace this with `return "whatever you want to return when done"`
+    #message_id = str(uuid.uuid4())
+    #message_key = client.key(kind, message_id)
+    #query = client.query(kind)
+    #message_entity = datastore.Entity(query)
+    #return message_entity.key
+      # Replace this with `return "whatever you want to return when done"`
+pass 
 
 # to indicate the task is complete
 def mark_done(client, task_id):
     with client.transaction():
-        key = client.key('Task', task_id)
+        key = client.key('message', task_id)
         task = client.get(key)
 
         if not task:
