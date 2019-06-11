@@ -35,8 +35,8 @@ def slash_hello():
 
 def fake_validation(something_to_validate):
     if something_to_validate == "Hello":
-        return True
-    return False
+        return False
+    return True
 
 
 # Start the Flask server
