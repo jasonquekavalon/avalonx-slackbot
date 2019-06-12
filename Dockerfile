@@ -10,5 +10,5 @@ RUN pip install -r /tmp/requirements.txt
 COPY . /app
 
 ## Run flask
-ENTRYPOINT ["gunicorn", "--bind=0.0.0.0:8000", "app:__flask_wsgi__"]
+ENTRYPOINT ["gunicorn", "--bind=0.0.0.0:8000", "app"]
 
