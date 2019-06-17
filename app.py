@@ -32,11 +32,11 @@ def slash_hello():
 
     return make_response("", 200)
 
-
-def fake_validation(something_to_validate):
-    if something_to_validate == "Hello":
-        return False
-    return True
+@app.route("/validation", methods=["POST"])
+def msg_validation():
+    req = request.json
+    if not req.get('message') || req.get('channel'):
+        return make_response("You're missing the required properties", 400)
 
 
 # Start the Flask server
