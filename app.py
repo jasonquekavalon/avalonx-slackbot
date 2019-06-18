@@ -39,8 +39,6 @@ def slack_test():
         return make_response("", 200)
     else:
         return make_response("You're missing the required properties", 400)
-
-    return make_response("", 200)
     
     
 
