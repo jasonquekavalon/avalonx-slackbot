@@ -15,20 +15,15 @@ def verify_slack_token(request_token):
         print("Received {} but was expecting {}".format(request_token, SLACK_VERIFICATION_TOKEN))
         return make_response("Request contains invalid Slack verification token", 403)
 
-@app.route("/slack/validation", methods=["POST"])
-def msg_validation(req):
-    return (req.get("message") and req.get("channel_name"))
 
 @app.route("/slack/test", methods=["POST"])
 def slack_test():
     req = request.json
 
     # send channel a response
-    if (msg_validation(req)):
-        slack_client.chat_postMessage(channel=req["channel_name"], text=req['message'])
-        return make_response("", 200)
-    else:
-        return make_response("You're missing the required properties", 400)
+    slack_client.chat_postMessage(channel=req["channel_name"], text=req['message'])
+
+    return make_response("", 200)
 
 
 @app.route("/hello", methods=["POST"])
