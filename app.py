@@ -25,6 +25,8 @@ def slack_test():
     req = request.json
 
     # Save the message to the database using the datastore client
+    #request status field (pending)
+    req["status"] = "Pending" 
     datastore_client.add_item(ds_client, "message", req)
 
     # send channel a response
@@ -32,14 +34,13 @@ def slack_test():
 
     return make_response("", 200)
 
-@app.route("/slack/get", methods=["GET"])
-def slack_get(message_query):
-    message_query = request.args.get(message_id)
-    # get back status of message (pending )
+@app.route("/get/message", methods=["GET"])
+def slack_get():
+    message_query = request.args.get("message_id")
     # Get the message from the database using the datastore client
-    datastore_client.get_item(ds_client, "message", message_id)
-    slack_client.search_messages(query=message_query)
-    return Response("")
+    queries = datastore_client.get_message(ds_client, "message", message_query)
+    return make_response(str(queries), 200)
+    
 
 @app.route("/hello", methods=["POST"])
 def slash_hello():

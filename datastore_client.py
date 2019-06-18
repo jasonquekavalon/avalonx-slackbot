@@ -13,7 +13,7 @@ def create_client(project_id):
     return datastore.Client(project_id)
 
 
-
+ds_id = str(uuid.uuid4())
 def add_item(client, kind, data):
     """
     Adds an item to Datastore
@@ -22,7 +22,7 @@ def add_item(client, kind, data):
     :param data: `dict` of item to store in Datastore
     :return:
     """
-    ds_id = str(uuid.uuid4())  # Generate a unique id for each entry
+      # Generate a unique id for each entry
     key = client.key(kind, ds_id)
 
     entity = datastore.Entity(key)
@@ -33,30 +33,11 @@ def add_item(client, kind, data):
 
     return entity.key
 
-def get_item(client, kind, message_id):
+def get_message(client, kind, id):
     """Get a specific item from Datastore by id"""
     # Code to get an item in Datastore ;)
 
-    query = client.query(kind)
-    message = query.fetch(message_id)
-    return message
-
-# to indicate the task is complete or pending 
-""" def mark_done(client, data):
-    with client.transaction():
-        key = client.key('message', ds_id)
-        task = client.get(key)
-
-        if not task:
-            raise ValueError(
-                'Task {} does not exist.'.format(ds_id))
-        else:
-
-            if task['done'] = False:
-                print("Pending") 
-
-            else:
-                client.put(task)
-                print("Saved") """
-
-
+    print(id)
+    key = client.key('message', id)
+    message = client.get(key)
+    return message.get("message")
