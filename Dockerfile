@@ -11,5 +11,5 @@ COPY . /app
 
 ## Run flask
 
-ENTRYPOINT ["gunicorn", "--bind=0.0.0.0:8000", "app"]
+ENTRYPOINT ["gunicorn", "--bind=0.0.0.0:8000", "app:app"]
 
