@@ -74,11 +74,11 @@ def slack_status():
 
 @app.route("/hello", methods=["POST"])
 def slash_hello():
-    slack_client.chat_postMessage(channel="alfred-dev", text="HELLO WORLD")
+    slack_client.chat_postMessage(channel="alfred-dev-internal", text="Hi test SHA")
 
     return make_response("", 200)
 
 
 # Start the Flask server
 if __name__ == "__main__":
-    app.run()
+    app.run(host="0.0.0.0", port=8000)

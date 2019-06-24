@@ -1,0 +1,3 @@
+app:
+	SLACK_BOT_TOKEN= SLACK_VERIFICATION_TOKEN= python -m app 
+
