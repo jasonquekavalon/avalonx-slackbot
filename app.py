@@ -28,7 +28,7 @@ def slack_test():
 
 @app.route("/hello", methods=["POST"])
 def slash_hello():
-    slack_client.chat_postMessage(channel="alfred-dev-internal", text="//testing rolling update//")
+    slack_client.chat_postMessage(channel="alfred-dev-internal", text="Hi test SHA")
 
     return make_response("", 200)
 
