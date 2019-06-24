@@ -15,7 +15,7 @@ def create_client(project_id):
 
 
 
-def add_item(client, kind, data, id):
+def add_item(client, kind, data):
     ds_id = str(uuid.uuid4())
     """
     Adds an item to Datastore
@@ -29,7 +29,7 @@ def add_item(client, kind, data, id):
     entity = datastore.Entity(key)
     entity.update(data)
     client.put(entity)
-    return entity.key
+    return ds_id
 
 def get_message(client, kind, id):
     """Get a specific message from Datastore by id"""
