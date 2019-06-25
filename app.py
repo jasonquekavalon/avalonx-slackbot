@@ -3,7 +3,9 @@ import config as cfg
 from slack import WebClient
 import datastore_client
 import uuid
+import logging
 
+logger = logging.getLogger()
 slack_client = WebClient(cfg.SLACK_BOT_TOKEN)
 SLACK_VERIFICATION_TOKEN = cfg.SLACK_VERIFICATION_TOKEN
 app = Flask(__name__)
@@ -34,6 +36,8 @@ def slack_gcp():
     # request status field (pending)
 
     req = request.form.to_dict()
+    logger.info("Logging request to /gcp_support")
+    logger.info(req)
     req["status"] = "Pending"
     message_id = datastore_client.add_item(ds_client, "message", req)
 
@@ -76,6 +80,8 @@ def slack_status():
 
 @app.route("/hello", methods=["POST"])
 def slash_hello():
+    logger.info("Logging request to /hello")
+    logger.info(req.form.to_dict())
     slack_client.chat_postMessage(channel="alfred-dev-internal", text="test test test")
 
     return make_response("", 200)
