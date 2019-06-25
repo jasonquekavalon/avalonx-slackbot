@@ -1,0 +1,35 @@
+# This cloudbuild file is used by GitHub integration dev trigger.
+steps:
+# 0. Set the gcloud environment
+- name: 'gcr.io/cloud-builders/gcloud'
+  args: ['container', 'clusters', 'get-credentials', '${_GCP_CONTAINER_CLUSTER}', '--zone=${_GCP_COMPUTE_ZONE}', '--project=${_PROJECT_ID}']
+
+# 1. Lint the main docker file. Ignore DL3018 which enforces specifying Alpine package versions
+- name: 'hadolint/hadolint'
+  entrypoint: 'hadolint'
+  args: ['Dockerfile', '--ignore', 'DL3018']
+
+# 2. Lint, test and build the application inside docker. Finally, build the image.
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '-t', '${_SERVICE_NAME}', '--build-arg', 'SHA_CLOUDBUILD=$SHORT_SHA', '--build-arg', 'TAG_CLOUDBUILD=$TAG_NAME', '.']
+
+# 8. Tag the new image with latest so it can be pushed to GCR
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['tag', '${_SERVICE_NAME}:latest', 'eu.gcr.io/$PROJECT_ID/${_SERVICE_NAME}:latest']
+
+# 4. Deploy the application to GCR
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', 'eu.gcr.io/${_PROJECT_ID}/${_SERVICE_NAME}']
+
+# 5. Deploy to kubernetes
+- name: 'gcr.io/cloud-builders/kubectl'
+  args: ['apply', '-f' , 'deployment.yaml']
+  env:
+    - 'CLOUDSDK_COMPUTE_ZONE=${_GCP_COMPUTE_ZONE}'
+    - 'CLOUDSDK_CONTAINER_CLUSTER=${_GCP_CONTAINER_CLUSTER}'
+
+substitutions:
+  _PROJECT_ID: alfred-dev-1
+  _SERVICE_NAME: alfred-gcp-support
+  _GCP_COMPUTE_ZONE: europe-west3-a
+  _GCP_CONTAINER_CLUSTER: alfred-dev-cluster

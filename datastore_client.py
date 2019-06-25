@@ -13,8 +13,10 @@ def create_client(project_id):
     return datastore.Client(project_id)
 
 
-ds_id = str(uuid.uuid4())
+
+
 def add_item(client, kind, data):
+    ds_id = str(uuid.uuid4())
     """
     Adds an item to Datastore
     :param client: the Datastore client object
@@ -22,22 +24,41 @@ def add_item(client, kind, data):
     :param data: `dict` of item to store in Datastore
     :return:
     """
-      # Generate a unique id for each entry
+    """ ds_id = str(uuid.uuid4()) """ # Generate a unique id for each entry
     key = client.key(kind, ds_id)
-
     entity = datastore.Entity(key)
-
     entity.update(data)
-
     client.put(entity)
-
-    return entity.key
+    return ds_id
 
 def get_message(client, kind, id):
-    """Get a specific item from Datastore by id"""
-    # Code to get an item in Datastore ;)
-
-    print(id)
+    """Get a specific message from Datastore by id"""
     key = client.key('message', id)
     message = client.get(key)
     return message.get("message")
+
+def get_status(client, kind, id):
+
+    key = client.key('message', id)
+    status = client.get(key)
+    return status.get("status")
+
+def update_status(client, kind, data, id):
+    key = client.key(kind, id)
+    message = client.get(key)
+    for status in message:
+        message[status] = message[status]
+    message["status"] = data
+    client.put(message)
+   
+    return message["status"]
+
+def update_response(client, kind, data, id):
+    key = client.key(kind, id) 
+    message = client.get(key)
+    for response in message:
+        message[response] = message[response]
+    message["response"] = data
+    client.put(message)
+   
+    return message["response"]
