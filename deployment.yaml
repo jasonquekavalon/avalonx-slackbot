@@ -42,7 +42,7 @@ spec:
             configMapKeyRef:
               key: SLACK_BOT_TOKEN
               name: alfred-config
-        image: gcr.io/alfred-dev-1/github.com/jasonquekavalon/avalonx-slackbot@sha256:6f4694ca78193cd8c4fc40d1ea87cccac0f29207f1e70e08415f3a58c789b7bc
+        image: eu.gcr.io/alfred-dev-1/github.com/jasonquekavalon/avalonx-slackbot:latest
         imagePullPolicy: IfNotPresent
         name: github-jasonquekavalon-avalonx-slackbot
         resources: {}

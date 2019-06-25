@@ -9,11 +9,11 @@ steps:
   entrypoint: 'hadolint'
   args: ['Dockerfile', '--ignore', 'DL3018']
 
-# 2. Lint, test and build the application inside docker. Finally, build the image.
+# 2. Build the application inside docker. Finally, build the image.
 - name: 'gcr.io/cloud-builders/docker'
   args: ['build', '-t', '${_SERVICE_NAME}', '--build-arg', 'SHA_CLOUDBUILD=$SHORT_SHA', '--build-arg', 'TAG_CLOUDBUILD=$TAG_NAME', '.']
 
-# 8. Tag the new image with latest so it can be pushed to GCR
+# 3. Tag the new image with latest so it can be pushed to GCR
 - name: 'gcr.io/cloud-builders/docker'
   args: ['tag', '${_SERVICE_NAME}:latest', 'eu.gcr.io/$PROJECT_ID/${_SERVICE_NAME}:latest']
 
