@@ -10,6 +10,8 @@ slack_client = WebClient(cfg.SLACK_BOT_TOKEN)
 SLACK_VERIFICATION_TOKEN = cfg.SLACK_VERIFICATION_TOKEN
 app = Flask(__name__)
 
+DEFAULT_BACKEND_CHANNEL = "alfred-dev-internal"
+
 # Create the datastore client
 ds_client = datastore_client.create_client("alfred-dev-1")
 
@@ -26,7 +28,7 @@ def verify_slack_token(request_token):
 
 @app.route("/slack/validation", methods=["POST"])
 def msg_validation(req):
-    return (req.get("message") and req.get("channel_name"))
+    return req.get("text")
 
 
 @app.route("/slack/gcp_support", methods=["POST"])
@@ -36,16 +38,16 @@ def slack_gcp():
     # request status field (pending)
 
     req = request.form.to_dict()
-    logger.info("Logging request to /gcp_support")
-    logger.info(req)
+    print(req)
     req["status"] = "Pending"
     message_id = datastore_client.add_item(ds_client, "message", req)
+    response = f"*{req['user_name']}* from workspace *{req['team_domain']}* has a question in {req['channel_name']}: {req['text']}."
 
     # send channel a response
     if (msg_validation(req)):
-        slack_client.chat_postMessage(channel=req["channel_name"], text=req['message'])
-        slack_client.chat_postMessage(channel=req["backend_channel"], text=req['message'])
-        return make_response("Your message id is " + str(message_id) + ". To check the status of your message, type '/status'.", 200)  # response is giving me the wrong message_id
+        # slack_client.chat_postMessage(channel=req["channel_name"], text=req['message'])
+        slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=response)
+        return make_response(f"Your message id is {message_id}. To check the status of your message, type `/msgstatus {message_id}`", 200)  # response is giving me the wrong message_id
     else:
         return make_response("You're missing the required properties", 400)
 
@@ -70,18 +72,17 @@ def slack_get():
     return make_response(str(queries), 200)
 
 
-@app.route("/get/status", methods=["GET"])
+@app.route("/status", methods=["POST"])
 def slack_status():
 
-    status_query = request.args.get("message_id")
-    status = datastore_client.get_status(ds_client, "message", status_query)
-    return make_response(str(status), 200)
+    req = request.form.to_dict()
+    ticket_id = req['text']
+    status = datastore_client.get_status(ds_client, "message", ticket_id)
+    return make_response(f"Your status for ticket with id = {ticket_id} is *{status}*", 200)
 
 
 @app.route("/hello", methods=["POST"])
 def slash_hello():
-    logger.info("Logging request to /hello")
-    logger.info(req.form.to_dict())
     slack_client.chat_postMessage(channel="alfred-dev-internal", text="test test test")
 
     return make_response("", 200)
