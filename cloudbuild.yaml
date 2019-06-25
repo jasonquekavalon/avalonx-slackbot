@@ -15,7 +15,7 @@ steps:
 
 # 8. Tag the new image with latest so it can be pushed to GCR
 - name: 'gcr.io/cloud-builders/docker'
-  args: ['tag', '${_SERVICE_NAME}:latest', 'gcr.io/$PROJECT_ID/${_SERVICE_NAME}:latest']
+  args: ['tag', '${_SERVICE_NAME}:latest', 'eu.gcr.io/$PROJECT_ID/${_SERVICE_NAME}:latest']
 
 # 4. Deploy the application to GCR
 - name: 'gcr.io/cloud-builders/docker'
