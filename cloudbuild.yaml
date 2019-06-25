@@ -13,10 +13,9 @@ steps:
 - name: 'gcr.io/cloud-builders/docker'
   args: ['build', '-t', '${_SERVICE_NAME}', '--build-arg', 'SHA_CLOUDBUILD=$SHORT_SHA', '--build-arg', 'TAG_CLOUDBUILD=$TAG_NAME', '.']
 
-# 3. Retag the new image so it can be pushed to GCR
-# - name: 'gcr.io/cloud-builders/docker'
-#   entrypoint: 'sh'
-#   args: ['./deployment/tag.sh', '${_SERVICE_NAME}:latest', 'eu.gcr.io/${_PROJECT_ID}/${_SERVICE_NAME}:$SHORT_SHA']
+# 8. Tag the new image with latest so it can be pushed to GCR
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['tag', '${_SERVICE_NAME}:latest', 'gcr.io/$PROJECT_ID/${_SERVICE_NAME}:latest']
 
 # 4. Deploy the application to GCR
 - name: 'gcr.io/cloud-builders/docker'
