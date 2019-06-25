@@ -76,7 +76,7 @@ def slack_status():
 
 @app.route("/hello", methods=["POST"])
 def slash_hello():
-    slack_client.chat_postMessage(channel="alfred-dev-internal", text="hello worldd")
+    slack_client.chat_postMessage(channel="alfred-dev-internal", text="Deployment testing")
 
     return make_response("", 200)
 
