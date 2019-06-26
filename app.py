@@ -66,7 +66,7 @@ def slack_response():
     except ValueError:
         # If it's a value error, then the string 
         # is not a valid hex code for a UUID.
-        return make_response("You're missing the required properties", 400)
+        return make_response("You're missing the required properties. Response should be in this format `/avalonx-respond <message id> <response>`. ", 400)
     response_to_message = req["text"]
     
     response = f"*{req['user_name']}* from workspace *{req['team_domain']}* has a responded to Message ID *{message_id}* in {req['channel_name']}: *{response_to_message}*"
