@@ -53,7 +53,7 @@ def slack_gcp():
         return make_response("You're missing the required properties", 400)
 
 
-@app.route("/response", methods=["PUT"])
+@app.route("/response", methods=["POST"])
 def slack_response():
     req = request.form.to_dict()
     response_to_message = req["response"]
