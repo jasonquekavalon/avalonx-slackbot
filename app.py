@@ -56,11 +56,10 @@ def slack_gcp():
 @app.route("/response", methods=["POST"])
 def slack_response():
     req = request.form.to_dict()
-    response_to_message = req["response"]
     updated_status = "Completed!"
     message_id = request.args.get("message_id")
     response = f"*{req['user_name']}* from workspace *{req['team_domain']}* has a responded in {req['channel_name']}: {req['text']}."
-    datastore_client.update_response(ds_client, "message", response_to_message, message_id)
+    datastore_client.update_response(ds_client, "message", req['text'], message_id)
     datastore_client.update_status(ds_client, "message", updated_status, message_id)
     slack_client.chat_postMessage(channel=CUSTOMER_CHANNEL, text=response)
     return make_response(f"Your message id is {message_id}. To check the status of your message, type `/msgstatus {message_id}`", 200)
@@ -82,6 +81,10 @@ def slack_status():
     status = datastore_client.get_status(ds_client, "message", ticket_id)
     return make_response(f"Your status for ticket with id = {ticket_id} is *{status}*", 200)
 
+@app.route("/resolve_message", methods=["POST"])
+def slack_resolve_message():
+    
+    return make_response(f"Thank you for using the Alfred slack bot. We hope you have a nice day!", 200)
 
 @app.route("/hello", methods=["POST"])
 def slash_hello():
