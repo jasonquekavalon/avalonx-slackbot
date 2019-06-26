@@ -37,7 +37,6 @@ def msg_validation(req):
 def slack_gcp():
 
     # Save the message to the database using the datastore client
-    # request status field (pending)
 
     req = request.form.to_dict()
     print(req)
@@ -50,7 +49,7 @@ def slack_gcp():
     if (msg_validation(req)):
         # slack_client.chat_postMessage(channel=req["channel_name"], text=req['message'])
         slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=response)
-        return make_response(f"Your message id is {message_id}. To check the status of your message, type `/msgstatus {message_id}`", 200)  # response is giving me the wrong message_id
+        return make_response(f"Your message id is {message_id}. To check the status of your message, type `/avalonx-message-status {message_id}`", 200)  
     else:
         return make_response("You're missing the required properties", 400)
 
@@ -68,9 +67,9 @@ def slack_response():
         # If it's a value error, then the string 
         # is not a valid hex code for a UUID.
         return make_response("You're missing the required properties", 400)
-    response_to_message = req["text"]
+    response_to_message = req["text"].split()[1:]
     
-    response = f"*{req['user_name']}* from workspace *{req['team_domain']}* has a responded in {req['channel_name']}: {req['text']}"
+    response = f"*{req['user_name']}* from workspace *{req['team_domain']}* has a responded to Message ID {message_id} in {req['channel_name']}: {response_to_message}"
     datastore_client.update_response(ds_client, "message", response_to_message, message_id)
     datastore_client.update_status(ds_client, "message", updated_status, message_id)
     slack_client.chat_postMessage(channel=CUSTOMER_CHANNEL, text=response)
@@ -91,7 +90,7 @@ def slack_status():
     req = request.form.to_dict()
     ticket_id = req['text']
     status = datastore_client.get_status(ds_client, "message", ticket_id)
-    return make_response(f"Your status for ticket with id = {ticket_id} is *{status}*", 200)
+    return make_response(f"Your status for ticket with ID = {ticket_id} is *{status}*", 200)
 
 @app.route("/resolve_message", methods=["POST"])
 def slack_resolve_message():
