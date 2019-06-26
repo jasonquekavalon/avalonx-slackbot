@@ -4,6 +4,7 @@ from slack import WebClient
 import datastore_client
 import uuid
 import logging
+from uuid import UUID
 
 logger = logging.getLogger()
 slack_client = WebClient(cfg.SLACK_BOT_TOKEN)
@@ -11,6 +12,7 @@ SLACK_VERIFICATION_TOKEN = cfg.SLACK_VERIFICATION_TOKEN
 app = Flask(__name__)
 
 DEFAULT_BACKEND_CHANNEL = "alfred-dev-internal"
+CUSTOMER_CHANNEL = "alfred-dev"
 
 # Create the datastore client
 ds_client = datastore_client.create_client("alfred-dev-1")
@@ -35,33 +37,43 @@ def msg_validation(req):
 def slack_gcp():
 
     # Save the message to the database using the datastore client
-    # request status field (pending)
 
     req = request.form.to_dict()
     print(req)
     req["status"] = "Pending"
     message_id = datastore_client.add_item(ds_client, "message", req)
-    response = f"*{req['user_name']}* from workspace *{req['team_domain']}* has a question in {req['channel_name']}: {req['text']}."
+
+    response = f"*{req['user_name']}* from workspace *{req['team_domain']}* has a question in {req['channel_name']}: *{req['text']}*. To respond, type `/avalonx-respond {message_id} <response>`."
 
     # send channel a response
     if (msg_validation(req)):
         # slack_client.chat_postMessage(channel=req["channel_name"], text=req['message'])
         slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=response)
-        return make_response(f"Your message id is {message_id}. To check the status of your message, type `/msgstatus {message_id}`", 200)  # response is giving me the wrong message_id
+        return make_response(f"Your message id is {message_id}. To check the status of your message, type `/avalonx-message-status {message_id}`", 200)  
     else:
         return make_response("You're missing the required properties", 400)
 
 
-@app.route("/response", methods=["PUT"])
+@app.route("/response", methods=["POST"])
 def slack_response():
-    req = request.json
-    response_to_message = req["response"]
+    req = request.form.to_dict()
     updated_status = "Completed!"
-    message_id = request.args.get("message_id")
+    
+    message_id = req['text'].split()[0]  # Should be a uuid if it was sent in as the first word
+    # Ensure that message_id is a real uuid.
+    try:
+        _ = UUID(str(message_id), version=4)
+    except ValueError:
+        # If it's a value error, then the string 
+        # is not a valid hex code for a UUID.
+        return make_response("You're missing the required properties. Response should be in this format `/avalonx-respond <message id> <response>`. ", 400)
+    response_to_message = req["text"]
+    
+    response = f"*{req['user_name']}* from workspace *{req['team_domain']}* has a responded to Message ID *{message_id}* in {req['channel_name']}: *{response_to_message}*"
     datastore_client.update_response(ds_client, "message", response_to_message, message_id)
     datastore_client.update_status(ds_client, "message", updated_status, message_id)
-    slack_client.chat_postMessage(channel=req["channel_name"], text=req["response"])
-    return make_response("", 200)
+    slack_client.chat_postMessage(channel=CUSTOMER_CHANNEL, text=response)
+    return make_response("Response has been sent!", 200)
 
 
 @app.route("/get/message", methods=["GET"])
@@ -78,8 +90,12 @@ def slack_status():
     req = request.form.to_dict()
     ticket_id = req['text']
     status = datastore_client.get_status(ds_client, "message", ticket_id)
-    return make_response(f"Your status for ticket with id = {ticket_id} is *{status}*", 200)
+    return make_response(f"Your status for ticket with ID = {ticket_id} is *{status}*", 200)
 
+@app.route("/resolve_message", methods=["POST"])
+def slack_resolve_message():
+    
+    return make_response(f"Thank you for using the Alfred slack bot. We hope you have a nice day!", 200)
 
 @app.route("/hello", methods=["POST"])
 def slash_hello():
