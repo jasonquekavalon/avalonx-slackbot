@@ -42,9 +42,8 @@ def slack_gcp():
     print(req)
     req["status"] = "Pending"
     message_id = datastore_client.add_item(ds_client, "message", req)
-    response = f"*{req['user_name']}* from workspace *{req['team_domain']}* has a question in {req['channel_name']}: {req['text']}."
 
-    response = f"*{req['user_name']}* from workspace *{req['team_domain']}* has a question in {req['channel_name']}: *{req['text']}*. To respond, type `/avalonx-respond {message_id}`."
+    response = f"*{req['user_name']}* from workspace *{req['team_domain']}* has a question in {req['channel_name']}: *{req['text']}*. To respond, type `/avalonx-respond {message_id} <response>`."
 
     # send channel a response
     if (msg_validation(req)):
