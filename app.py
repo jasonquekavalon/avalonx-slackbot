@@ -44,7 +44,7 @@ def slack_gcp():
     req["status"] = "Pending"
     message_id = datastore_client.add_item(ds_client, "message", req)
 
-    response = f"*{req['user_name']}* from workspace *{req['team_domain']}* has a question in {req['channel_name']}: {req['text']}. The message id is {message_id}."
+    response = f"*{req['user_name']}* from workspace *{req['team_domain']}* has a question in {req['channel_name']}: *{req['text']}*. To respond, type `/avalonx-respond {message_id}`."
 
     # send channel a response
     if (msg_validation(req)):
@@ -55,26 +55,26 @@ def slack_gcp():
         return make_response("You're missing the required properties", 400)
 
 
-# @app.route("/response", methods=["POST"])
-# def slack_response():
-#     req = request.form.to_dict()
-#     updated_status = "Completed!"
+@app.route("/response", methods=["POST"])
+def slack_response():
+    req = request.form.to_dict()
+    updated_status = "Completed!"
     
-#     message_id = req['text'].split()[0]  # Should be a uuid if it was sent in as the first word
-#     # Ensure that message_id is a real uuid.
-#     try:
-#         val = UUID(str(message_id), version=4)
-#     except ValueError:
-#         # If it's a value error, then the string 
-#         # is not a valid hex code for a UUID.
-#         return make_response("You're missing the required properties", 400)
-#     response_to_message = req["text"].split()[1:]
+    message_id = req['text'].split()[0]  # Should be a uuid if it was sent in as the first word
+    # Ensure that message_id is a real uuid.
+    try:
+        _ = UUID(str(message_id), version=4)
+    except ValueError:
+        # If it's a value error, then the string 
+        # is not a valid hex code for a UUID.
+        return make_response("You're missing the required properties", 400)
+    response_to_message = req["text"]
     
-#     response = f"*{req['user_name']}* from workspace *{req['team_domain']}* has a responded in {req['channel_name']}: {req['text']}"
-#     datastore_client.update_response(ds_client, "message", response_to_message, message_id)
-#     datastore_client.update_status(ds_client, "message", updated_status, message_id)
-#     slack_client.chat_postMessage(channel=CUSTOMER_CHANNEL, text=response)
-#     return make_response(f"Your message id is {message_id}. To check the status of your message, type `/msgstatus {message_id}`", 200)
+    response = f"*{req['user_name']}* from workspace *{req['team_domain']}* has a responded in {req['channel_name']}: {req['text']}"
+    datastore_client.update_response(ds_client, "message", response_to_message, message_id)
+    datastore_client.update_status(ds_client, "message", updated_status, message_id)
+    slack_client.chat_postMessage(channel=CUSTOMER_CHANNEL, text=response)
+    return make_response("Response has been sent!", 200)
 
 
 @app.route("/get/message", methods=["GET"])
