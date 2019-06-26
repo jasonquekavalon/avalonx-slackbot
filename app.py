@@ -67,9 +67,9 @@ def slack_response():
         # If it's a value error, then the string 
         # is not a valid hex code for a UUID.
         return make_response("You're missing the required properties", 400)
-    response_to_message = req["text"].split()[1:]
+    response_to_message = req["text"]
     
-    response = f"*{req['user_name']}* from workspace *{req['team_domain']}* has a responded to Message ID {message_id} in {req['channel_name']}: {response_to_message}"
+    response = f"*{req['user_name']}* from workspace *{req['team_domain']}* has a responded to Message ID *{message_id}* in {req['channel_name']}: {response_to_message}"
     datastore_client.update_response(ds_client, "message", response_to_message, message_id)
     datastore_client.update_status(ds_client, "message", updated_status, message_id)
     slack_client.chat_postMessage(channel=CUSTOMER_CHANNEL, text=response)
