@@ -12,7 +12,7 @@ SLACK_VERIFICATION_TOKEN = cfg.SLACK_VERIFICATION_TOKEN
 app = Flask(__name__)
 
 DEFAULT_BACKEND_CHANNEL = "alfred-dev-internal"
-CUSTOMER_CHANNEL = "alfred-dev"
+CUSTOMER_CHANNEL = req["channel_name"]
 
 # Create the datastore client
 ds_client = datastore_client.create_client("alfred-dev-1")
@@ -75,7 +75,7 @@ def slack_response():
     response = f"*{req['user_name']}* from workspace *{req['team_domain']}* has a responded to Message ID *{message_id}* in {req['channel_name']}: *{response_to_message}*"
     datastore_client.update_response(ds_client, "message", response_to_message, message_id)
     datastore_client.update_status(ds_client, "message", updated_status, message_id)
-    slack_client.chat_postMessage(channel=CUSTOMER_CHANNEL, text=response)
+    slack_client.chat_postMessage(channel=channel_name, text=response)
     return make_response("Response has been sent!", 200)
 
 
@@ -102,7 +102,7 @@ def slack_resolve_message():
     updated_status = "Completed"
     datastore_client.update_status(ds_client, "message", updated_status, message_id)
     
-    slack_client.chat_postMessage(channel=CUSTOMER_CHANNEL, text="Your issue has been resolved. Thank you for using the Alfred slack bot. We hope you have a nice day!")
+    slack_client.chat_postMessage(channel=channel_name, text="Your issue has been resolved. Thank you for using the Alfred slack bot. We hope you have a nice day!")
     return make_response("", 200)
 
 @app.route("/hello", methods=["POST"])
