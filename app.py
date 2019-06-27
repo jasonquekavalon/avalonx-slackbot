@@ -50,7 +50,7 @@ def slack_gcp():
     if (msg_validation(req)):
         # slack_client.chat_postMessage(channel=req["channel_name"], text=req['message'])
         slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=internal_message)
-        return make_response(message + f"Your message id is {message_id}. To check the status of your message, type `/avalonx-message-status {message_id}`.", 200)  
+        return make_response(message + f"Your Message ID is {message_id}. To check the status of your message, type `/avalonx-message-status {message_id}`.", 200)  
     else:
         return make_response("You're missing the required properties", 400)
 
