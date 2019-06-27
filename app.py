@@ -60,8 +60,6 @@ def slack_gcp():
 @app.route("/response", methods=["POST"])
 def slack_response():
     req = request.form.to_dict()
-    updated_status = "Completed!"
-    
     message_id = req['text'].split()[0]  # Should be a uuid if it was sent in as the first word
     # Ensure that message_id is a real uuid.
     try:
@@ -75,7 +73,6 @@ def slack_response():
     
     response = f"*{req['user_name']}* from workspace *{req['team_domain']}* has a responded to Message ID *{message_id}* in {req['channel_name']}: *{response_to_message}*"
     datastore_client.update_response(ds_client, "message", response_to_message, message_id)
-    datastore_client.update_status(ds_client, "message", updated_status, message_id)
     slack_client.chat_postMessage(channel=CUSTOMER_CHANNEL, text=response)
     return make_response("Response has been sent!", 200)
 
@@ -90,7 +87,6 @@ def slack_get():
 
 @app.route("/status", methods=["POST"])
 def slack_status():
-
     req = request.form.to_dict()
     ticket_id = req['text']
     status = datastore_client.get_status(ds_client, "message", ticket_id)
@@ -98,12 +94,17 @@ def slack_status():
 
 @app.route("/resolve_message", methods=["POST"])
 def slack_resolve_message():
+    req = request.form.to_dict()
+    message_id = req['text'].split()[0]
+    updated_status = "Completed"
+    datastore_client.update_status(ds_client, "message", updated_status, message_id)
     
-    return make_response(f"Thank you for using the Alfred slack bot. We hope you have a nice day!", 200)
+    slack_client.chat_postMessage(channel=CUSTOMER_CHANNEL, text="Your issue has been resolved. Thank you for using the Alfred slack bot. We hope you have a nice day!")
+    return make_response("", 200)
 
 @app.route("/hello", methods=["POST"])
 def slash_hello():
-    slack_client.chat_postMessage(channel="alfred-dev-internal", text="test test test")
+    slack_client.chat_postMessage(channel="alfred-dev-internal", text="test test")
 
     return make_response("", 200)
 
