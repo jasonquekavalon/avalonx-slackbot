@@ -43,15 +43,18 @@ def slack_gcp():
     req["status"] = "Pending"
     message_id = datastore_client.add_item(ds_client, "message", req)
 
-    response = f"*{req['user_name']}* from workspace *{req['team_domain']}* has a question in {req['channel_name']}: *{req['text']}*. To respond, type `/avalonx-respond {message_id} <response>`."
-
+    internal_message = f"*{req['user_name']}* from workspace *{req['team_domain']}* has a question in {req['channel_name']}: *{req['text']}*. To respond, type `/avalonx-respond {message_id} <response>`."
+    message = f"*{req['user_name']}* from workspace *{req['team_domain']}* says: *{req['text']}*"
+    
     # send channel a response
     if (msg_validation(req)):
         # slack_client.chat_postMessage(channel=req["channel_name"], text=req['message'])
-        slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=response)
-        return make_response(f"Your message id is {message_id}. To check the status of your message, type `/avalonx-message-status {message_id}`", 200)  
+        slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=internal_message)
+        slack_client.chat_postMessage(channel=CUSTOMER_CHANNEL, text=message)
+        return make_response(f"Your message id is {message_id}. To check the status of your message, type `/avalonx-message-status {message_id}`.", 200)  
     else:
         return make_response("You're missing the required properties", 400)
+
 
 
 @app.route("/response", methods=["POST"])
@@ -67,7 +70,8 @@ def slack_response():
         # If it's a value error, then the string 
         # is not a valid hex code for a UUID.
         return make_response("You're missing the required properties. Response should be in this format `/avalonx-respond <message id> <response>`. ", 400)
-    response_to_message = req["text"]
+    response_to_message_split = req["text"].split(maxsplit=1)[1:]
+    response_to_message = response_to_message_split[0]
     
     response = f"*{req['user_name']}* from workspace *{req['team_domain']}* has a responded to Message ID *{message_id}* in {req['channel_name']}: *{response_to_message}*"
     datastore_client.update_response(ds_client, "message", response_to_message, message_id)
