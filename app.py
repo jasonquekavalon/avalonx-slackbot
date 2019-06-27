@@ -12,7 +12,7 @@ SLACK_VERIFICATION_TOKEN = cfg.SLACK_VERIFICATION_TOKEN
 app = Flask(__name__)
 
 DEFAULT_BACKEND_CHANNEL = "alfred-dev-internal"
-CUSTOMER_CHANNEL = req[channel_name]
+CUSTOMER_CHANNEL = req['channel_name']
 
 # Create the datastore client
 ds_client = datastore_client.create_client("alfred-dev-1")
