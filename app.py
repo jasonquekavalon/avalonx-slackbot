@@ -71,14 +71,13 @@ def slack_response():
         return make_response("You're missing the required properties. Response should be in this format `/avalonx-respond <message id> <response>`. ", 400)
     response_to_message_split = req["text"].split(maxsplit=1)[1:]
     response_to_message = response_to_message_split[0]
-    
-    
     channel_name = datastore_client.get_channelname(ds_client, "message", message_id)
-
     response = f"*{req['user_name']}* from workspace *{req['team_domain']}* has a responded to Message ID *{message_id}* in {req['channel_name']}: *{response_to_message}*"
+    
     datastore_client.update_response(ds_client, "message", response_to_message, message_id)
     datastore_client.update_status(ds_client, "message", updated_status, message_id)
     slack_client.chat_postMessage(channel=channel_name, text=response)
+    slack_client.chat_postMessage(channel=CUSTOMER_CHANNEL, text=response)
     return make_response("Response has been sent!", 200)
 
 
@@ -92,7 +91,6 @@ def slack_get():
 
 @app.route("/status", methods=["POST"])
 def slack_status():
-
     req = request.form.to_dict()
     ticket_id = req['text']
     status = datastore_client.get_status(ds_client, "message", ticket_id)
@@ -111,7 +109,7 @@ def slack_resolve_message():
 
 @app.route("/hello", methods=["POST"])
 def slash_hello():
-    slack_client.chat_postMessage(channel="alfred-dev-internal", text="test test test")
+    slack_client.chat_postMessage(channel="alfred-dev-internal", text="test test")
 
     return make_response("", 200)
 
