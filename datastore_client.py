@@ -43,6 +43,11 @@ def get_status(client, kind, id):
     status = client.get(key)
     return status.get("status")
 
+def get_channelname(client, kind, id):
+    key = client.key('message', id)
+    channel_name = client.get(key)
+    return channel_name.get("channel_name")
+
 def update_status(client, kind, data, id):
     key = client.key(kind, id)
     message = client.get(key)
