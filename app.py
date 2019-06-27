@@ -12,7 +12,7 @@ SLACK_VERIFICATION_TOKEN = cfg.SLACK_VERIFICATION_TOKEN
 app = Flask(__name__)
 
 DEFAULT_BACKEND_CHANNEL = "alfred-dev-internal"
-CUSTOMER_CHANNEL = "alfred-dev"
+
 
 # Create the datastore client
 ds_client = datastore_client.create_client("alfred-dev-1")
@@ -40,6 +40,7 @@ def slack_gcp():
 
     req = request.form.to_dict()
     print(req)
+    
     req["status"] = "Pending"
     message_id = datastore_client.add_item(ds_client, "message", req)
 
@@ -59,6 +60,7 @@ def slack_gcp():
 @app.route("/response", methods=["POST"])
 def slack_response():
     req = request.form.to_dict()
+    updated_status = "Completed!"
     message_id = req['text'].split()[0]  # Should be a uuid if it was sent in as the first word
     # Ensure that message_id is a real uuid.
     try:
@@ -69,9 +71,12 @@ def slack_response():
         return make_response("You're missing the required properties. Response should be in this format `/avalonx-respond <message id> <response>`. ", 400)
     response_to_message_split = req["text"].split(maxsplit=1)[1:]
     response_to_message = response_to_message_split[0]
-    
+    channel_name = datastore_client.get_channelname(ds_client, "message", message_id)
     response = f"*{req['user_name']}* from workspace *{req['team_domain']}* has a responded to Message ID *{message_id}* in {req['channel_name']}: *{response_to_message}*"
+    
     datastore_client.update_response(ds_client, "message", response_to_message, message_id)
+    datastore_client.update_status(ds_client, "message", updated_status, message_id)
+    slack_client.chat_postMessage(channel=channel_name, text=response)
     slack_client.chat_postMessage(channel=CUSTOMER_CHANNEL, text=response)
     return make_response("Response has been sent!", 200)
 
@@ -94,11 +99,12 @@ def slack_status():
 @app.route("/resolve_message", methods=["POST"])
 def slack_resolve_message():
     req = request.form.to_dict()
+    channel_name = req["channel_name"]
     message_id = req['text'].split()[0]
     updated_status = "Completed"
     datastore_client.update_status(ds_client, "message", updated_status, message_id)
     
-    slack_client.chat_postMessage(channel=CUSTOMER_CHANNEL, text="Your issue has been resolved. Thank you for using the Alfred slack bot. We hope you have a nice day!")
+    slack_client.chat_postMessage(channel=channel_name, text="Your issue has been resolved. Thank you for using the Alfred slack bot. We hope you have a nice day!")
     return make_response("", 200)
 
 @app.route("/hello", methods=["POST"])
