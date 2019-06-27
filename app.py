@@ -104,8 +104,8 @@ def slack_resolve_message():
     updated_status = "Completed"
     datastore_client.update_status(ds_client, "message", updated_status, message_id)
     
-    slack_client.chat_postMessage(channel=channel_name, text="Your issue has been resolved. Thank you for using the Alfred slack bot. We hope you have a nice day!")
-    return make_response("", 200)
+#     slack_client.chat_postMessage(channel=channel_name, text="Your issue has been resolved. Thank you for using the Alfred slack bot. We hope you have a nice day!")
+    return make_response("Your issue has been resolved. Thank you for using the Alfred slack bot. We hope you have a nice day!", 200)
 
 @app.route("/hello", methods=["POST"])
 def slash_hello():
