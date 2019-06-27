@@ -44,14 +44,13 @@ def slack_gcp():
     message_id = datastore_client.add_item(ds_client, "message", req)
 
     internal_message = f"*{req['user_name']}* from workspace *{req['team_domain']}* has a question in {req['channel_name']}: *{req['text']}*. To respond, type `/avalonx-respond {message_id} <response>`."
-    message = f"*{req['user_name']}* from workspace *{req['team_domain']}* says: *{req['text']}*"
+    message = f"*{req['user_name']}* from workspace *{req['team_domain']}* says: *{req['text']}*. "
     
     # send channel a response
     if (msg_validation(req)):
         # slack_client.chat_postMessage(channel=req["channel_name"], text=req['message'])
         slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=internal_message)
-        slack_client.chat_postMessage(channel=CUSTOMER_CHANNEL, text=message)
-        return make_response(f"Your message id is {message_id}. To check the status of your message, type `/avalonx-message-status {message_id}`.", 200)  
+        return make_response(message + f"Your message id is {message_id}. To check the status of your message, type `/avalonx-message-status {message_id}`.", 200)  
     else:
         return make_response("You're missing the required properties", 400)
 
@@ -98,8 +97,13 @@ def slack_status():
 
 @app.route("/resolve_message", methods=["POST"])
 def slack_resolve_message():
+    req = request.form.to_dict()
+    message_id = req['text'].split()[0]
+    updated_status = "Completed"
+    datastore_client.update_status(ds_client, "message", updated_status, message_id)
     
-    return make_response(f"Thank you for using the Alfred slack bot. We hope you have a nice day!", 200)
+    slack_client.chat_postMessage(channel=CUSTOMER_CHANNEL, text="Your issue has been resolved. Thank you for using the Alfred slack bot. We hope you have a nice day!")
+    return make_response("", 200)
 
 @app.route("/hello", methods=["POST"])
 def slash_hello():
