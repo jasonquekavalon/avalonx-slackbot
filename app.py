@@ -70,8 +70,8 @@ def slack_response():
         # If it's a value error, then the string 
         # is not a valid hex code for a UUID.
         return make_response("You're missing the required properties. Response should be in this format `/avalonx-respond <message id> <response>`. ", 400)
-    response_to_message_list = req["text"].split(maxsplit=1)[1:]
-    response_to_message = _.join(response_to_message_list)
+    response_to_message_split = req["text"].split(maxsplit=1)[1:]
+    response_to_message = response_to_message_split[0]
     
     response = f"*{req['user_name']}* from workspace *{req['team_domain']}* has a responded to Message ID *{message_id}* in {req['channel_name']}: *{response_to_message}*"
     datastore_client.update_response(ds_client, "message", response_to_message, message_id)
