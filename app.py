@@ -100,7 +100,7 @@ def slack_resolve_message():
 
 @app.route("/hello", methods=["POST"])
 def slash_hello():
-    slack_client.chat_postMessage(channel="alfred-dev-internal", text="test test test")
+    slack_client.chat_postMessage(channel="alfred-dev-internal", text="test test")
 
     return make_response("", 200)
 
