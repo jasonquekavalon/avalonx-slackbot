@@ -77,7 +77,6 @@ def slack_response():
     datastore_client.update_response(ds_client, "message", response_to_message, message_id)
     datastore_client.update_status(ds_client, "message", updated_status, message_id)
     slack_client.chat_postMessage(channel=channel_name, text=response)
-    slack_client.chat_postMessage(channel=CUSTOMER_CHANNEL, text=response)
     return make_response("Response has been sent!", 200)
 
 
@@ -99,6 +98,7 @@ def slack_status():
 @app.route("/resolve_message", methods=["POST"])
 def slack_resolve_message():
     req = request.form.to_dict()
+    channel_name = req["channel_name"]
     message_id = req['text'].split()[0]
     updated_status = "Completed"
     datastore_client.update_status(ds_client, "message", updated_status, message_id)
