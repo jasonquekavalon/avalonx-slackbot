@@ -77,7 +77,6 @@ def slack_response():
     datastore_client.update_response(ds_client, "message", response_to_message, message_id)
     datastore_client.update_status(ds_client, "message", updated_status, message_id)
     slack_client.chat_postMessage(channel=channel_name, text=response)
-    slack_client.chat_postMessage(channel=CUSTOMER_CHANNEL, text=response)
     return make_response("Response has been sent!", 200)
 
 
