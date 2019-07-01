@@ -49,7 +49,7 @@ def slack_gcp():
     req["message_id"]  = message_id
     print(req)
     saved_message_id = req["text"].split()[0]
-    saved_message = req['text']
+    saved_message = list(req['text'])
     print(saved_message)
     # send channel a response
     if (msg_validation(req)):
