@@ -40,18 +40,24 @@ def slack_gcp():
 
     req = request.form.to_dict()
     print(req)
-    
+    query = datastore_client.get(req["team_domain"])
+    if query is None:
+        count = 1
+    else:
+        count += 1
+
     req["status"] = "Pending"
     message_id = datastore_client.add_item(ds_client, "message", req)
+    friendly_id = f"{req['team_domain']}-{count}"
 
-    internal_message = f"*{req['user_name']}* from workspace *{req['team_domain']}* has a question in {req['channel_name']}: *{req['text']}*. To respond, type `/avalonx-respond {message_id} <response>`."
+    internal_message = f"*{req['user_name']}* from workspace *{req['team_domain']}* has a question in {req['channel_name']}: *{req['text']}*. To respond, type `/avalonx-respond {friendly_id} <response>`."
     message = f"*{req['user_name']}* from workspace *{req['team_domain']}* says: *{req['text']}*. "
     
     # send channel a response
     if (msg_validation(req)):
         # slack_client.chat_postMessage(channel=req["channel_name"], text=req['message'])
         slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=internal_message)
-        return make_response(message + f"Your Message ID is {message_id}. To check the status of your message, type `/avalonx-message-status {message_id}`.", 200)  
+        return make_response(message + f"Your Message ID is {friendly_id}. To check the status of your message, type `/avalonx-message-status {friendly_id}`.", 200)  
     else:
         return make_response("You're missing the required properties", 400)
 
