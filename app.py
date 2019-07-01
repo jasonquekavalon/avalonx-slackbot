@@ -44,7 +44,9 @@ def slack_gcp():
 
     query = ds_client.query(kind = 'message')
     query.add_filter('team_domain', "=", req['team_domain'])
-    count = len(list(query.fetch())) + 1
+    q = list(query.fetch())
+    print(q)
+    count = len(q) + 1
     # if query is None:
     #     count = 1
     #     friendly_id = f"{req['team_domain']}-{count}"
