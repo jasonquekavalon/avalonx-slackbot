@@ -42,7 +42,7 @@ def slack_gcp():
     req = request.form.to_dict()
     # print(req)
 
-    query = datastore_client.query(kind = 'message')
+    query = ds_client.query(kind = 'message')
     query.add_filter('team_domain', "=", req['team_domain'])
     count = len(list(query.fetch())) + 1
     # if query is None:
