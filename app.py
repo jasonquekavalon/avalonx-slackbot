@@ -99,8 +99,8 @@ def slack_status():
 def slack_resolve_message():
     req = request.form.to_dict()
     message_id = req['text'].split()[0]
-    updatedd_status = "Completed"
-    datastore_client.update_status(ds_client, "message", updatedd_status, message_id)
+    updated_status = "Completed"
+    datastore_client.update_status(ds_client, "message", updated_status, message_id)
   
     slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=f"*{req['user_name']}* from workspace *{req['team_domain']}* has resolved their ticket with Message ID *{message_id}*")
     return make_response("Your issue has been resolved. Thank you for using the Alfred slack bot. We hope you have a nice day!", 200)
