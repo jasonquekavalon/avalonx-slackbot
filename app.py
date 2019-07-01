@@ -49,16 +49,17 @@ def slack_gcp():
     req["message_id"]  = message_id
     print(req)
     saved_message_id = req["text"].split()[0]
-    saved_message = list(req['text'])
-    print(saved_message)
+    saved_messages = ()
+    print(saved_message_id)
     # send channel a response
     if (msg_validation(req)):
         for key, value in req.items():
             req[key] = list(value)
             if saved_message_id not in req['text']:
-                saved_message.append()
+                saved_messages.append(req['text'])
             else:
-                saved_message.append()
+                saved_message.append(req["text"])
+                req['text'] = saved_messages
         # slack_client.chat_postMessage(channel=req["channel_name"], text=req['message'])
         slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=internal_message)
         return make_response(message + f"Your Message ID is {message_id}. To check the status of your message, type `/avalonx-message-status {message_id}`.", 200)  
