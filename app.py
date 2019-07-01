@@ -39,8 +39,10 @@ def slack_gcp():
     # Save the message to the database using the datastore client
 
     req = request.form.to_dict()
-    print(req)
-    query = datastore_client.get(req["team_domain"])
+    # print(req)
+
+    query = datastore_client.query(kind = "message")
+    query.add_filter("team_domain", "=", req["team_domain"])
     if query is None:
         count = 1
     else:
