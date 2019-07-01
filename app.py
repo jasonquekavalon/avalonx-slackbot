@@ -46,7 +46,7 @@ def slack_gcp():
     if query is None:
         count = 1
     else:
-        count += 1
+        count = 2
 
     req["status"] = "Pending"
     message_id = datastore_client.add_item(ds_client, "message", req)
