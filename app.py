@@ -42,7 +42,7 @@ def slack_gcp():
     # print(req)
 
     query = datastore_client.query(kind = "message")
-    query.add_filter("__key__", "=", req["team_domain"])
+    query.add_filter('team_domain', "=", req["team_domain"])
     if query is None:
         count = 1
     else:
@@ -60,7 +60,7 @@ def slack_gcp():
     if (msg_validation(req)):
         # slack_client.chat_postMessage(channel=req["channel_name"], text=req['message'])
         slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=internal_message)
-        return make_response(message + f"Your Message ID is {friendly_id}. To check the status of your message, type `/avalonx-message-status {friendly_id}`.", 200)  
+        return make_response(message + f"Your Message ID is *{friendly_id}*. To check the status of your message, type `/avalonx-message-status {friendly_id}`.", 200)  
     else:
         return make_response("You're missing the required properties", 400)
 
