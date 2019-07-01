@@ -48,18 +48,17 @@ def slack_gcp():
     message = f"*{req['user_name']}* from workspace *{req['team_domain']}* says: *{req['text']}*. "
     req["message_id"]  = message_id
     print(req)
-    saved_message_id = req["text"].split()[0]
-    saved_messages = ()
-    print(saved_message_id)
+    
+    saved_messages = []
+    
     # send channel a response
     if (msg_validation(req)):
-        for key, value in req.items():
-            req[key] = list(value)
-            if saved_message_id not in req['text']:
-                saved_messages.append(req['text'])
-            else:
-                saved_message.append(req["text"])
-                req['text'] = saved_messages
+        
+        if message_id not in req['text']:
+            saved_messages.append(req['text'])
+        else:
+            saved_messages.append(req["text"])
+            req['text'] = saved_messages
         # slack_client.chat_postMessage(channel=req["channel_name"], text=req['message'])
         slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=internal_message)
         return make_response(message + f"Your Message ID is {message_id}. To check the status of your message, type `/avalonx-message-status {message_id}`.", 200)  
