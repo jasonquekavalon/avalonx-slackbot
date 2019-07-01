@@ -40,19 +40,10 @@ def slack_gcp():
     # Save the message to the database using the datastore client
 
     req = request.form.to_dict()
-    # print(req)
 
     query = ds_client.query(kind = 'message')
     query.add_filter('team_domain', "=", req['team_domain'])
-    q = list(query.fetch())
-    print(q)
-    count = len(q) + 1
-    # if query is None:
-    #     count = 1
-    #     friendly_id = f"{req['team_domain']}-{count}"
-    # else:
-        
-    #     friendly_id = f"{req['team_domain']}-{count}"
+    count = len(list(query.fetch())) + 1
 
     req["status"] = "Pending"
     message_id = datastore_client.add_item(ds_client, "message", req)
@@ -64,7 +55,6 @@ def slack_gcp():
     
     # send channel a response
     if (msg_validation(req)):
-        # slack_client.chat_postMessage(channel=req["channel_name"], text=req['message'])
         slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=internal_message)
         return make_response(message + f"Your Message ID is *{friendly_id}*. To check the status of your message, type `/avalonx-message-status {friendly_id}`.", 200)  
     else:
