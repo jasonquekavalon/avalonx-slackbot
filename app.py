@@ -41,16 +41,17 @@ def slack_gcp():
     req = request.form.to_dict()
     # print(req)
 
-    query = datastore_client.query(kind = "message")
-    query.add_filter("team_domain", "=", req["team_domain"])
-    if query is None:
-        count = 1
-    else:
-        count += 1
+    # query = datastore_client.query(kind = "message")
+    # query.add_filter("team_domain", "=", req["team_domain"])
+    # if query is None:
+    #     count = 1
+    # else:
+    #     count += 1
 
     req["status"] = "Pending"
     message_id = datastore_client.add_item(ds_client, "message", req)
-    friendly_id = f"{req['team_domain']}-{count}"
+    # friendly_id = f"{req['team_domain']}-{count}"
+    friendly_id = f"{req['team_domain']}-1"
 
     internal_message = f"*{req['user_name']}* from workspace *{req['team_domain']}* has a question in {req['channel_name']}: *{req['text']}*. To respond, type `/avalonx-respond {friendly_id} <response>`."
     message = f"*{req['user_name']}* from workspace *{req['team_domain']}* says: *{req['text']}*. "
