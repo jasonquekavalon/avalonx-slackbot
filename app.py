@@ -33,6 +33,7 @@ def msg_validation(req):
     return req.get("text")
 
 
+
 @app.route("/slack/gcp_support", methods=["POST"])
 def slack_gcp():
 
@@ -42,11 +43,14 @@ def slack_gcp():
     # print(req)
 
     query = datastore_client.query(kind = "message")
-    query.add_filter('team_domain', "=", str(req["team_domain"]))
-    if query is None:
-        count = 1
-    else:
-        count += 1
+    query.add_filter('team_domain', "=", req["team_domain"])
+    count = len(list(query.fetch())) + 1
+    # if query is None:
+    #     count = 1
+    #     friendly_id = f"{req['team_domain']}-{count}"
+    # else:
+        
+    #     friendly_id = f"{req['team_domain']}-{count}"
 
     req["status"] = "Pending"
     message_id = datastore_client.add_item(ds_client, "message", req)
