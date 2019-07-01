@@ -98,7 +98,6 @@ def slack_status():
 @app.route("/resolve_message", methods=["POST"])
 def slack_resolve_message():
     req = request.form.to_dict()
-    channel_name = req["channel_name"]
     message_id = req['text'].split()[0]
     updated_status = "Completed"
     datastore_client.update_status(ds_client, "message", updated_status, message_id)
