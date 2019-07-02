@@ -53,7 +53,7 @@ def get_msgID(client, kind, friendly_id):
     # query.add_filter('team_domain', "=", req['team_domain'])
     query = client.query(kind = 'message')
     query.add_filter('friendly_id', '=', friendly_id)
-    return query.keys_only()
+    return str(query.keys_only())
 
 def update_status(client, kind, data, id):
     key = client.key(kind, id)
