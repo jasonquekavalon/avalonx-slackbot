@@ -49,8 +49,6 @@ def get_channelname(client, kind, id):
     return channel_name.get("channel_name")
 
 def get_msgID(client, kind, friendly_id):
-    # query = ds_client.query(kind = 'message')
-    # query.add_filter('team_domain', "=", req['team_domain'])
     query = client.query(kind = 'message')
     query.add_filter('friendly_id', '=', friendly_id)
     return str(query.keys_only())

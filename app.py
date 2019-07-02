@@ -19,7 +19,6 @@ ds_client = datastore_client.create_client("alfred-dev-1")
 
 # TODO: Add checks for all responses from slack api calls
 
-
 def verify_slack_token(request_token):
     """This should be used for ALL requests in the future"""
     if SLACK_VERIFICATION_TOKEN != request_token:
@@ -50,7 +49,7 @@ def slack_gcp():
     friendly_id = f"{req['team_domain']}-{count}"
     req['message_id'] = message_id
     req['friendly_id'] = friendly_id
-    # friendly_id = f"{req['team_domain']}-1"
+
 
     internal_message = f"*{req['user_name']}* from workspace *{req['team_domain']}* has a question in {req['channel_name']}: *{req['text']}*. To respond, type `/avalonx-respond {friendly_id} <response>`."
     message = f"*{req['user_name']}* from workspace *{req['team_domain']}* says: *{req['text']}*. "
