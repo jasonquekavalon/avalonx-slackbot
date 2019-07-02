@@ -39,5 +39,5 @@ steps:
 substitutions:
   _PROJECT_ID: alfred-dev-1
   _SERVICE_NAME: alfred-gcp-support
-  _GCP_COMPUTE_ZONE: europe-west3-a
-  _GCP_CONTAINER_CLUSTER: alfred-dev-cluster
+  _GCP_COMPUTE_ZONE: asia-southeast1-a
+  _GCP_CONTAINER_CLUSTER: alfred-dev-cluster-sg
