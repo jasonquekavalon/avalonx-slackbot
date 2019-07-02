@@ -18,7 +18,6 @@ steps:
   args:
   - '-c'
   - sed -e "s/COMMIT_SHA/${SHORT_SHA}/g" -e "s/SERVICE_NAME/${_SERVICE_NAME}/g" deployment-template.yaml > deployment.yaml
-  # - sed "s/SERVICE_NAME/${_SERVICE_NAME}/g" deployment-template.yaml > deployment.yaml
 
 # 2. Build the application inside docker. Finally, build the image.
 - name: 'gcr.io/cloud-builders/docker'
