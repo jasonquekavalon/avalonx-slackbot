@@ -62,8 +62,8 @@ def slack_gcp():
             
             stored_messages = list(str(datastore_client.get_saved_messages(ds_client, "message", message_id)))
             
-            new_stored_messages = stored_messages.append(following_message)
-            datastore_client.update_message(ds_client, "message", new_stored_messages, message_id)
+            stored_messages.append(following_message)
+            datastore_client.update_message(ds_client, "message", stored_messages, message_id)
                 
             internal_message = f"*{req['user_name']}* from workspace *{req['team_domain']}* has a question in {req['channel_name']}: *{following_message}*. To respond, type `/avalonx-respond {message_id} <response>`."
             slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=internal_message)
