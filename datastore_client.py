@@ -16,7 +16,6 @@ def create_client(project_id):
 
 
 def add_item(client, kind, data, friendly_id):
-    # ds_id = str(uuid.uuid4())
     """
     Adds an item to Datastore
     :param client: the Datastore client object
@@ -47,11 +46,6 @@ def get_channelname(client, kind, id):
     key = client.key('message', id)
     channel_name = client.get(key)
     return channel_name.get("channel_name")
-
-def get_msgID(client, kind, friendly_id):
-    query = client.query(kind = 'message')
-    query.add_filter('friendly_id', '=', friendly_id)
-    return str(query.keys_only())
 
 def update_status(client, kind, data, id):
     key = client.key(kind, id)
