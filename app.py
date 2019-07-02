@@ -45,7 +45,7 @@ def slack_gcp():
 
     # send channel a response
     if (msg_validation(req)):
-        
+        # saved_messages = []
         if "message_id" not in req['text']:
             # message_from_customer = req["text"]
             message = f"*{req['user_name']}* from workspace *{req['team_domain']}* says: *{req['text']}*. "
@@ -60,7 +60,9 @@ def slack_gcp():
             # mesage_from_customer = following_messages
             message = f"*{req['user_name']}* from workspace *{req['team_domain']}* says: *{following_message}*. "
             # saved_messages.append(message_stored)
-            datastore_client.update_message(ds_client, "message", following_message, message_id)
+            stored_messages = datastore_client.get_saved_messages(ds_client, "message", message_id)
+            new_stored_messages = stored_messages.append(following_message)
+            datastore_client.update_message(ds_client, "message", new_stored_messages, message_id)
                 
             internal_message = f"*{req['user_name']}* from workspace *{req['team_domain']}* has a question in {req['channel_name']}: *{following_message}*. To respond, type `/avalonx-respond {message_id} <response>`."
             slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=internal_message)
@@ -85,8 +87,8 @@ def slack_response():
     response_to_message_split = req["text"].split(maxsplit=1)[1:]
     response_to_message = response_to_message_split[0]
     channel_name = datastore_client.get_channelname(ds_client, "message", message_id)
-    response = f"*{req['user_name']}* from workspace *{req['team_domain']}* has responded to Message ID *{message_id}* in {req['channel_name']}: *{response_to_message}*. To respond, type `/avalonx message_id {message_id} <INPUT RESPONSE HERE>`. To resolve this conversation, type `/avalon-resolve {message_id} `."
-    
+    response = f"*{req['user_name']}* from workspace *{req['team_domain']}* has responded to Message ID *{message_id}* in {req['channel_name']}: *{response_to_message}*. To respond, type `/avalonx message_id {message_id} <INPUT RESPONSE HERE>`. To resolve this conversation, type `/avalonx-resolve {message_id}`."
+
     datastore_client.update_response(ds_client, "message", response_to_message, message_id)
     slack_client.chat_postMessage(channel=channel_name, text=response)
     return make_response("Response has been sent!", 200)
