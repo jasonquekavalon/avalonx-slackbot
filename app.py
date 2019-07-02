@@ -48,11 +48,11 @@ def slack_gcp():
     message = f"*{req['user_name']}* from workspace *{req['team_domain']}* says: *{req['text']}*. "
     
     
-    saved_messages = []
+    
     
     # send channel a response
     if (msg_validation(req)):
-        
+        saved_messages = []
         if "message_id" not in req['text']:
             message_id = datastore_client.add_item(ds_client, "message", req)
             saved_messages.append(req["text"])
