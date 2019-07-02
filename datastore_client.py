@@ -58,6 +58,16 @@ def update_status(client, kind, data, id):
    
     return message["status"]
 
+def update_message(client, kind, data, id):
+    key = client.key(kind, id)
+    Entity = client.get(key)
+    for message in Entity:
+        Entity[message] = Entity[message]
+    Entity["text"] = data
+    client.put(Entity)
+
+    return Entity["text"]
+
 def update_response(client, kind, data, id):
     key = client.key(kind, id) 
     message = client.get(key)
