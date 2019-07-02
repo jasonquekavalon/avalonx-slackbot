@@ -42,14 +42,7 @@ def slack_gcp():
     print(req)
     
     req["status"] = "Pending"
-    
 
-    
-    
-    
-    
-    
-    
     # send channel a response
     if (msg_validation(req)):
         
@@ -61,6 +54,12 @@ def slack_gcp():
             internal_message = f"*{req['user_name']}* from workspace *{req['team_domain']}* has a question in {req['channel_name']}: *{req['text']}*. To respond, type `/avalonx-respond {message_id} <response>`."
             slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=internal_message)
         else:
+            try:
+                _ = UUID(str(message_id), version=4)
+            except ValueError:
+            # If it's a value error, then the string 
+            # is not a valid hex code for a UUID.
+                return make_response("You're missing the required properties. Response should be in this format `/avalonx message_id <input Message ID here> <input Response here>`. ", 400)
             message_id = req['text'].split()[1] #/avalonx message_id 1283219837857402 <message>
             following_message_split = req["text"].split(maxsplit=2)[2:]
             following_message = following_message_split[0]
@@ -92,7 +91,7 @@ def slack_response():
     response_to_message_split = req["text"].split(maxsplit=1)[1:]
     response_to_message = response_to_message_split[0]
     channel_name = datastore_client.get_channelname(ds_client, "message", message_id)
-    response = f"*{req['user_name']}* from workspace *{req['team_domain']}* has responded to Message ID *{message_id}* in {req['channel_name']}: *{response_to_message}*. To respond, type `/avalonx message_id {message_id} <response>`. To resolve this conversation, type `/avalon-resolve`."
+    response = f"*{req['user_name']}* from workspace *{req['team_domain']}* has responded to Message ID *{message_id}* in {req['channel_name']}: *{response_to_message}*. To respond, type `/avalonx message_id {message_id} <INPUT RESPONSE HERE>`. To resolve this conversation, type `/avalon-resolve {message_id} `."
     
     datastore_client.update_response(ds_client, "message", response_to_message, message_id)
     slack_client.chat_postMessage(channel=channel_name, text=response)
