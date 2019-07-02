@@ -17,8 +17,8 @@ steps:
   - '_SERVICE_NAME=${_SERVICE_NAME}'
   args:
   - '-c'
-  - sed "s/COMMIT_SHA/${SHORT_SHA}/g" deployment-template.yaml > deployment.yaml
-  - sed "s/SERVICE_NAME/${_SERVICE_NAME}/g" deployment-template.yaml > deployment.yaml
+  - sed 's/COMMIT_SHA/${SHORT_SHA}/g s/SERVICE_NAME/${_SERVICE_NAME}/g' deployment-template.yaml > deployment.yaml
+  # - sed "s/SERVICE_NAME/${_SERVICE_NAME}/g" deployment-template.yaml > deployment.yaml
 
 # 2. Build the application inside docker. Finally, build the image.
 - name: 'gcr.io/cloud-builders/docker'
