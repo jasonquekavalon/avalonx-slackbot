@@ -45,7 +45,7 @@ def slack_gcp():
     
 
     
-    message = f"*{req['user_name']}* from workspace *{req['team_domain']}* says: *{req['text']}*. "
+    
     
     
     
@@ -53,19 +53,25 @@ def slack_gcp():
     # send channel a response
     if (msg_validation(req)):
         saved_messages = []
-        if "message_id" not in req['text']:
-            message_id = datastore_client.add_item(ds_client, "message", req)
-            saved_messages.append(req["text"])
-            internal_message = f"*{req['user_name']}* from workspace *{req['team_domain']}* has a question in {req['channel_name']}: *{req['text']}*. To respond, type `/avalonx-respond {message_id} <response>`."
-            slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=internal_message)
-        else:
-            message_id = req['text'].split()[1] #/avalonx message_id 1283219837857402 <message>
-            following_message_split = req["text"].split(maxsplit=2)[2:]
-            following_message = following_message_split[0]
-            saved_messages.append(following_message)
-            datastore_client.update_message(ds_client, "message", saved_messages, message_id)
-            internal_message = f"*{req['user_name']}* from workspace *{req['team_domain']}* has a question in {req['channel_name']}: *{req['text']}*. To respond, type `/avalonx-respond {message_id} <response>`."
-            slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=internal_message)
+        for message_stored in message_from_customer:
+            if "message_id" not in req['text']:
+                message_from_customer = req["text"]
+                message = f"*{req['user_name']}* from workspace *{req['team_domain']}* says: *{req['text']}*. "
+                message_id = datastore_client.add_item(ds_client, "message", req)
+                saved_messages.append(message_stored)
+                internal_message = f"*{req['user_name']}* from workspace *{req['team_domain']}* has a question in {req['channel_name']}: *{req['text']}*. To respond, type `/avalonx-respond {message_id} <response>`."
+                slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=internal_message)
+            else:
+                message_id = req['text'].split()[1] #/avalonx message_id 1283219837857402 <message>
+                following_message_split = req["text"].split(maxsplit=2)[2:]
+                following_message = following_message_split[0]
+                message_from_customer = following_message
+                message = f"*{req['user_name']}* from workspace *{req['team_domain']}* says: *{following_message}*. "
+                saved_messages.append(message_stored)
+                datastore_client.update_message(ds_client, "message", saved_messages, message_id)
+                
+                internal_message = f"*{req['user_name']}* from workspace *{req['team_domain']}* has a question in {req['channel_name']}: *{req['text']}*. To respond, type `/avalonx-respond {message_id} <response>`."
+                slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=internal_message)
         # slack_client.chat_postMessage(channel=req["channel_name"], text=req['message'])
         
         return make_response(message + f"Your Message ID is {message_id}. To check the status of your message, type `/avalonx-message-status {message_id}`.", 200)   
