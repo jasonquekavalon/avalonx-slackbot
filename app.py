@@ -60,7 +60,6 @@ def slack_gcp():
             
             message = f"*{req['user_name']}* from workspace *{req['team_domain']}* says: *{following_message}*. "
             
-
             stored_messages = datastore_client.get_saved_messages(ds_client, "message", message_id)
             if isinstance(stored_messages, str):
                 stored_messages = [stored_messages]
@@ -96,7 +95,7 @@ def slack_response():
     if isinstance(stored_responses, str):
         stored_responses = [stored_responses]
     stored_responses.append(response_to_message)
-    datastore_client.update_response(ds_client, "message", response_to_message, message_id)
+    datastore_client.update_response(ds_client, "message", stored_responses, message_id)
     slack_client.chat_postMessage(channel=channel_name, text=response)
     return make_response("Response has been sent!", 200)
 
