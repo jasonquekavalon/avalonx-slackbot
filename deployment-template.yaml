@@ -1,12 +1,12 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: _SERVICE_NAME
+  name: SERVICE_NAME
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: _SERVICE_NAME
+      app: SERVICE_NAME
   strategy:
     rollingUpdate:
       maxSurge: 1
@@ -15,7 +15,7 @@ spec:
   template:
     metadata:
       labels:
-        app: _SERVICE_NAME
+        app: SERVICE_NAME
     spec:
       containers:
       - env:
@@ -23,12 +23,12 @@ spec:
           valueFrom:
             configMapKeyRef:
               key: SLACK_VERIFICATION_TOKEN
-              name: _SERVICE_NAME-config
+              name: SERVICE_NAME-config
         - name: SLACK_BOT_TOKEN
           valueFrom:
             configMapKeyRef:
               key: SLACK_BOT_TOKEN
-              name: _SERVICE_NAME-config
+              name: SERVICE_NAME-config
         image: eu.gcr.io/alfred-dev-1/alfred-gcp-support:COMMIT_SHA
         imagePullPolicy: IfNotPresent
         name: github-jasonquekavalon-avalonx-slackbot
