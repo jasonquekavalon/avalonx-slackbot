@@ -62,7 +62,8 @@ def slack_gcp():
             
             list_of_messages = []
             stored_messages = datastore_client.get_saved_messages(ds_client, "message", message_id)
-            list_of_messages.append(stored_messages)
+            for messages in stored_messages:
+                list_of_messages.append(messages)
             list_of_messages.append(following_message)
             datastore_client.update_message(ds_client, "message", list_of_messages, message_id)
                 
