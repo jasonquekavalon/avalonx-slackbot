@@ -64,14 +64,7 @@ def slack_gcp():
             stored_messages = datastore_client.get_saved_messages(ds_client, "message", message_id)
             if isinstance(stored_messages, str):
                 stored_messages = [stored_messages]
-            stored_messages.append(following_message)
-
-            # list_of_messages = []
-            # stored_messages = datastore_client.get_saved_messages(ds_client, "message", message_id)
-            # list_of_messages.append(messages)
-            # for messages in stored_messages:
-            #     list_of_messages.append(following_message)
-            
+            stored_messages.append(following_message)           
             
             datastore_client.update_message(ds_client, "message", stored_messages, message_id)
                 
@@ -99,7 +92,10 @@ def slack_response():
     response_to_message = response_to_message_split[0]
     channel_name = datastore_client.get_channelname(ds_client, "message", message_id)
     response = f"*{req['user_name']}* from workspace *{req['team_domain']}* has responded to Message ID *{message_id}* in {req['channel_name']}: *{response_to_message}*. To respond, type `/avalonx message_id {message_id} <INPUT RESPONSE HERE>`. To resolve this conversation, type `/avalonx-resolve {message_id}`."
-
+    stored_responses = datastore_client.get_saved_responses(ds_client, "message", message_id)
+    if isinstance(stored_responses, str):
+        stored_responses = [stored_responses]
+    stored_responses.append(response_to_message)
     datastore_client.update_response(ds_client, "message", response_to_message, message_id)
     slack_client.chat_postMessage(channel=channel_name, text=response)
     return make_response("Response has been sent!", 200)
