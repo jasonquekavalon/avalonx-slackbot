@@ -48,13 +48,14 @@ def slack_gcp():
     message = f"*{req['user_name']}* from workspace *{req['team_domain']}* says: *{req['text']}*. "
     
     
-    saved_messages = list(req["text"])
+    saved_messages = []
     
     # send channel a response
     if (msg_validation(req)):
         
         if "message_id" not in req['text']:
             message_id = datastore_client.add_item(ds_client, "message", req)
+            saved_messages.append(req["text"])
             internal_message = f"*{req['user_name']}* from workspace *{req['team_domain']}* has a question in {req['channel_name']}: *{req['text']}*. To respond, type `/avalonx-respond {message_id} <response>`."
             slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=internal_message)
         else:
