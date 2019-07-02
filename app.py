@@ -60,7 +60,7 @@ def slack_gcp():
             
             message = f"*{req['user_name']}* from workspace *{req['team_domain']}* says: *{following_message}*. "
             
-            stored_messages = list(str(datastore_client.get_saved_messages(ds_client, "message", message_id)))
+            stored_messages = str(datastore_client.get_saved_messages(ds_client, "message", message_id)
             
             stored_messages.append(following_message)
             datastore_client.update_message(ds_client, "message", stored_messages, message_id)
