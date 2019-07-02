@@ -55,15 +55,17 @@ def slack_gcp():
         
         if "message_id" not in req['text']:
             message_id = datastore_client.add_item(ds_client, "message", req)
-            
+            internal_message = f"*{req['user_name']}* from workspace *{req['team_domain']}* has a question in {req['channel_name']}: *{req['text']}*. To respond, type `/avalonx-respond {message_id} <response>`."
+            slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=internal_message)
         else:
-            message_id = req['text'].split()[1] #/avalonx message_id: 1283219837857402 <message>
+            message_id = req['text'].split()[1] #/avalonx message_id 1283219837857402 <message>
             
             saved_messages.append(req["text"])
             datastore_client.update_message(ds_client, "message", saved_messages, message_id)
+            internal_message = f"*{req['user_name']}* from workspace *{req['team_domain']}* has a question in {req['channel_name']}: *{req['text']}*. To respond, type `/avalonx-respond {message_id} <response>`."
+            slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=internal_message)
         # slack_client.chat_postMessage(channel=req["channel_name"], text=req['message'])
-        internal_message = f"*{req['user_name']}* from workspace *{req['team_domain']}* has a question in {req['channel_name']}: *{req['text']}*. To respond, type `/avalonx-respond {message_id} <response>`."
-        slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=internal_message)
+        
         return make_response(message + f"Your Message ID is {message_id}. To check the status of your message, type `/avalonx-message-status {message_id}`.", 200)   
     else:
         return make_response("You're missing the required properties", 400)
