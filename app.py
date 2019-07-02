@@ -54,12 +54,6 @@ def slack_gcp():
             internal_message = f"*{req['user_name']}* from workspace *{req['team_domain']}* has a question in {req['channel_name']}: *{req['text']}*. To respond, type `/avalonx-respond {message_id} <response>`."
             slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=internal_message)
         else:
-            try:
-                _ = UUID(str(message_id), version=4)
-            except ValueError:
-            # If it's a value error, then the string 
-            # is not a valid hex code for a UUID.
-                return make_response("You're missing the required properties. Response should be in this format `/avalonx message_id <input Message ID here> <input Response here>`. ", 400)
             message_id = req['text'].split()[1] #/avalonx message_id 1283219837857402 <message>
             following_message_split = req["text"].split(maxsplit=2)[2:]
             following_message = following_message_split[0]
