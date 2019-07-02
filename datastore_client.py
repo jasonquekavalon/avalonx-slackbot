@@ -53,6 +53,11 @@ def get_saved_messages(client, kind, id):
     saved_messages = client.get(key)
     return saved_messages.get("text")
 
+def get_saved_responses(client, kind, id):
+    key = client.key('message', id)
+    saved_responses = client.get(key)
+    return saved_responses.get("response")
+
 def update_status(client, kind, data, id):
     key = client.key(kind, id)
     message = client.get(key)
