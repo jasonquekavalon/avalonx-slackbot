@@ -45,8 +45,9 @@ def slack_gcp():
     count = len(list(query.fetch())) + 1
 
     req["status"] = "Pending"
-    message_id = datastore_client.add_item(ds_client, "message", req)
     friendly_id = f"{req['team_domain']}-{count}"
+    message_id = datastore_client.add_item(ds_client, "message", req, friendly_id)
+    
     req['message_id'] = message_id
     req['friendly_id'] = friendly_id
 
