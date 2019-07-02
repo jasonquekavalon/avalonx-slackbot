@@ -62,6 +62,8 @@ def slack_gcp():
             
 
             stored_messages = datastore_client.get_saved_messages(ds_client, "message", message_id)
+            if isinstance(stored_messages, str):
+                stored_messages = [stored_messages]
             stored_messages.append(following_message)
 
             # list_of_messages = []
