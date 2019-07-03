@@ -96,7 +96,7 @@ def slack_response():
         if isinstance(stored_responses, str):
             stored_responses = [stored_responses]
         stored_responses.append(response_to_message)
-        datastore_client.update_response(ds_client, "message", stored_responses, message_id)
+    datastore_client.update_response(ds_client, "message", stored_responses, message_id)
     slack_client.chat_postMessage(channel=channel_name, text=response)
     return make_response("Response has been sent!", 200)
 
