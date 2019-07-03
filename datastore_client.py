@@ -16,7 +16,9 @@ def create_client(project_id):
 
 
 def add_item(client, kind, data, friendly_id):
+
     # ds_id = str(uuid.uuid4())
+
     """
     Adds an item to Datastore
     :param client: the Datastore client object

@@ -13,9 +13,11 @@ steps:
 - name: 'gcr.io/cloud-builders/gcloud'
   id: Generate manifest
   entrypoint: /bin/sh
+  env:
+  - '_SERVICE_NAME=${_SERVICE_NAME}'
   args:
   - '-c'
-  - sed "s/COMMIT_SHA/${SHORT_SHA}/g" deployment-template.yaml > deployment.yaml
+  - sed -e "s/COMMIT_SHA/${SHORT_SHA}/g" -e "s/SERVICE_NAME/${_SERVICE_NAME}/g" deployment-template.yaml > deployment.yaml
 
 # 2. Build the application inside docker. Finally, build the image.
 - name: 'gcr.io/cloud-builders/docker'
@@ -39,5 +41,5 @@ steps:
 substitutions:
   _PROJECT_ID: alfred-dev-1
   _SERVICE_NAME: alfred-gcp-support
-  _GCP_COMPUTE_ZONE: europe-west3-a
-  _GCP_CONTAINER_CLUSTER: alfred-dev-cluster
+  _GCP_COMPUTE_ZONE: asia-southeast1-a
+  _GCP_CONTAINER_CLUSTER: alfred-dev-cluster-sg

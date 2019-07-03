@@ -19,7 +19,6 @@ ds_client = datastore_client.create_client("alfred-dev-1")
 
 # TODO: Add checks for all responses from slack api calls
 
-
 def verify_slack_token(request_token):
     """This should be used for ALL requests in the future"""
     if SLACK_VERIFICATION_TOKEN != request_token:
@@ -33,12 +32,14 @@ def msg_validation(req):
     return req.get("text")
 
 
+
 @app.route("/slack/gcp_support", methods=["POST"])
 def slack_gcp():
 
     # Save the message to the database using the datastore client
 
     req = request.form.to_dict()
+
     query = ds_client.query(kind = 'message')
     query.add_filter('team_domain', "=", req['team_domain'])
     count = len(list(query.fetch())) + 1
@@ -76,21 +77,25 @@ def slack_gcp():
         # slack_client.chat_postMessage(channel=req["channel_name"], text=req['message'])
         
         return make_response(message + f"Your Message ID is {friendly_id}. To check the status of your message, type `/avalonx-message-status {friendly_id}`.", 200)   
+
     else:
         return make_response("You're missing the required properties", 400)
 
 @app.route("/response", methods=["POST"])
 def slack_response():
     req = request.form.to_dict()
+
     
     friendly_id = req['text'].split()[0]  # Should be a uuid if it was sent in as the first word
     # Ensure that message_id is a real uuid.
+
     # try:
     #     _ = UUID(str(message_id), version=4)
     # except ValueError:
     #     # If it's a value error, then the string 
     #     # is not a valid hex code for a UUID.
     #     return make_response("You're missing the required properties. Response should be in this format `/avalonx-respond <message id> <response>`. ", 400)
+
     response_to_message_split = req["text"].split(maxsplit=1)[1:]
     response_to_message = response_to_message_split[0]
     channel_name = datastore_client.get_channelname(ds_client, "message", friendly_id)
@@ -103,6 +108,7 @@ def slack_response():
         stored_responses = [stored_responses]
     stored_responses.append(response_to_message)
     datastore_client.update_response(ds_client, "message", stored_responses, friendly_id)
+
     slack_client.chat_postMessage(channel=channel_name, text=response)
     return make_response("Response has been sent!", 200)
 
@@ -118,7 +124,9 @@ def slack_status():
     req = request.form.to_dict()
     friendly_id = req['text']
     status = datastore_client.get_status(ds_client, "message", friendly_id)
+
     return make_response(f"Your status for ticket with ID = {friendly_id} is *{status}*", 200)
+
 
 @app.route("/resolve_message", methods=["POST"])
 def slack_resolve_message():
