@@ -102,23 +102,12 @@ def slack_response():
     slack_client.chat_postMessage(channel=channel_name, text=response)
     return make_response("Response has been sent!", 200)
 
-        # else:
-            
-        # else:
-        #     stored_responses = []
-        # stored_responses.append(response_to_message)
-        # datastore_client.update_response(ds_client, "message", stored_responses, message_id)
-        # slack_client.chat_postMessage(channel=channel_name, text=response)
-        # return make_response("Response has been sent!", 200)
-
-
 @app.route("/get/message", methods=["GET"])
 def slack_get():
     message_query = request.args.get("message_id")
     # Get the message from the database using the datastore client
     queries = datastore_client.get_message(ds_client, "message", message_query)
     return make_response(str(queries), 200)
-
 
 @app.route("/status", methods=["POST"])
 def slack_status():
