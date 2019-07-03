@@ -101,12 +101,12 @@ def slack_response():
         slack_client.chat_postMessage(channel=channel_name, text=response)
         return make_response("Response has been sent!", 200)
     
-        else:
-            stored_responses = []
-        stored_responses.append(response_to_message)
-        datastore_client.update_response(ds_client, "message", stored_responses, message_id)
-        slack_client.chat_postMessage(channel=channel_name, text=response)
-        return make_response("Response has been sent!", 200)
+        # else:
+        #     stored_responses = []
+        # stored_responses.append(response_to_message)
+        # datastore_client.update_response(ds_client, "message", stored_responses, message_id)
+        # slack_client.chat_postMessage(channel=channel_name, text=response)
+        # return make_response("Response has been sent!", 200)
 
 
 @app.route("/get/message", methods=["GET"])
