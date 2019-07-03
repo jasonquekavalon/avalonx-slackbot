@@ -16,6 +16,9 @@ def create_client(project_id):
 
 
 def add_item(client, kind, data, friendly_id):
+
+    # ds_id = str(uuid.uuid4())
+
     """
     Adds an item to Datastore
     :param client: the Datastore client object
@@ -47,6 +50,16 @@ def get_channelname(client, kind, id):
     channel_name = client.get(key)
     return channel_name.get("channel_name")
 
+def get_saved_messages(client, kind, id):
+    key = client.key('message', id)
+    saved_messages = client.get(key)
+    return saved_messages.get("text")
+
+def get_saved_responses(client, kind, id):
+    key = client.key('message', id)
+    saved_responses = client.get(key)
+    return saved_responses.get("response")
+
 def update_status(client, kind, data, id):
     key = client.key(kind, id)
     message = client.get(key)
@@ -56,6 +69,16 @@ def update_status(client, kind, data, id):
     client.put(message)
    
     return message["status"]
+
+def update_message(client, kind, data, id):
+    key = client.key(kind, id)
+    Entity = client.get(key)
+    for message in Entity:
+        Entity[message] = Entity[message]
+    Entity["text"] = data
+    client.put(Entity)
+
+    return Entity["text"]
 
 def update_response(client, kind, data, id):
     key = client.key(kind, id) 
