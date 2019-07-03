@@ -93,7 +93,7 @@ def slack_response():
     response = f"*{req['user_name']}* from workspace *{req['team_domain']}* has responded to Message ID *{message_id}* in {req['channel_name']}: *{response_to_message}*. To respond, type `/avalonx message_id {message_id} <INPUT RESPONSE HERE>`. To resolve this conversation, type `/avalonx-resolve {message_id}`."
     stored_responses = datastore_client.get_saved_responses(ds_client, "message", message_id)
     
-    if isinstance(stored_response, None):
+    if isinstance(stored_responses, None):
         stored_responses = [stored_responses]
     stored_responses.append(response_to_message)
     datastore_client.update_response(ds_client, "message", stored_responses, message_id)
