@@ -19,20 +19,23 @@ ds_client = datastore_client.create_client("alfred-dev-1")
 
 # TODO: Add checks for all responses from slack api calls
 
-def verify_slack_token(request_token):
+def verify_slack_token(func):
     """This should be used for ALL requests in the future"""
-    if SLACK_VERIFICATION_TOKEN != request_token:
-        print("Error: invalid verification token!")
-        print("Received {} but was expecting {}".format(request_token, SLACK_VERIFICATION_TOKEN))
-        return make_response("Request contains invalid Slack verification token", 403)
-
+    print("verify")
+    def wrapper():
+        request_token = func()
+        if SLACK_VERIFICATION_TOKEN != request_token:
+            print("Error: invalid verification token!")
+            # print("Received {} but was expecting {}".format(request_token, SLACK_VERIFICATION_TOKEN))
+            return make_response("Request contains invalid Slack verification token", 403)
+    return wrapper
 
 @app.route("/slack/validation", methods=["POST"])
 def msg_validation(req):
     return req.get("text")
 
 
-
+@verify_slack_token
 @app.route("/slack/gcp_support", methods=["POST"])
 def slack_gcp():
 
@@ -76,11 +79,14 @@ def slack_gcp():
             slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=internal_message)
         # slack_client.chat_postMessage(channel=req["channel_name"], text=req['message'])
         
-        return make_response(message + f"Your Message ID is {friendly_id}. To check the status of your message, type `/avalonx-message-status {friendly_id}`.", 200)   
+        make_response(message + f"Your Message ID is {friendly_id}. To check the status of your message, type `/avalonx-message-status {friendly_id}`.", 200)   
 
     else:
-        return make_response("You're missing the required properties", 400)
+        make_response("You're missing the required properties", 400)
 
+    return req['token']
+
+@verify_slack_token
 @app.route("/response", methods=["POST"])
 def slack_response():
     req = request.form.to_dict()
@@ -110,7 +116,8 @@ def slack_response():
     datastore_client.update_response(ds_client, "message", stored_responses, friendly_id)
 
     slack_client.chat_postMessage(channel=channel_name, text=response)
-    return make_response("Response has been sent!", 200)
+    make_response("Response has been sent!", 200)
+    return req['token']
 
 @app.route("/get/message", methods=["GET"])
 def slack_get():
@@ -119,15 +126,17 @@ def slack_get():
     queries = datastore_client.get_message(ds_client, "message", message_query)
     return make_response(str(queries), 200)
 
+@verify_slack_token
 @app.route("/status", methods=["POST"])
 def slack_status():
     req = request.form.to_dict()
     friendly_id = req['text']
     status = datastore_client.get_status(ds_client, "message", friendly_id)
 
-    return make_response(f"Your status for ticket with ID = {friendly_id} is *{status}*", 200)
+    make_response(f"Your status for ticket with ID = {friendly_id} is *{status}*", 200)
+    return req['token']
 
-
+@verify_slack_token
 @app.route("/resolve_message", methods=["POST"])
 def slack_resolve_message():
     req = request.form.to_dict()
@@ -136,8 +145,9 @@ def slack_resolve_message():
     datastore_client.update_status(ds_client, "message", updated_status, friendly_id)
   
     slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=f"*{req['user_name']}* from workspace *{req['team_domain']}* has resolved their ticket with Message ID *{friendly_id}*")
-    return make_response("Your issue has been resolved. Thank you for using the Alfred slack bot. We hope you have a nice day!", 200)
-
+    make_response("Your issue has been resolved. Thank you for using the Alfred slack bot. We hope you have a nice day!", 200)
+    return req['token']
+    
 @app.route("/hello", methods=["POST"])
 def slash_hello():
     slack_client.chat_postMessage(channel="alfred-dev-internal", text="test test")
