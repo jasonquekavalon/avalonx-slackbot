@@ -21,14 +21,14 @@ ds_client = datastore_client.create_client("alfred-dev-1")
 
 def verify_slack_token(func):
     """This should be used for ALL requests in the future"""
-    # print("verify")
-    logger.info("verify")
     def wrapper():
-        request_token = func()
+        req = request.form.to_dict()
+        request_token = req['token']
         if SLACK_VERIFICATION_TOKEN != request_token:
-            print("Error: invalid verification token!")
-            # print("Received {} but was expecting {}".format(request_token, SLACK_VERIFICATION_TOKEN))
+            # print("Error: invalid verification token!")
             return make_response("Request contains invalid Slack verification token", 403)
+        else:
+            return func()
     return wrapper
 
 @app.route("/slack/validation", methods=["POST"])
@@ -78,7 +78,6 @@ def slack_gcp():
                 
             internal_message = f"*{req['user_name']}* from workspace *{req['team_domain']}* has a question in {req['channel_name']}: *{following_message}*. To respond, type `/avalonx-respond {friendly_id} <response>`."
             slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=internal_message)
-        # slack_client.chat_postMessage(channel=req["channel_name"], text=req['message'])
         
         make_response(message + f"Your Message ID is {friendly_id}. To check the status of your message, type `/avalonx-message-status {friendly_id}`.", 200)   
 
@@ -149,10 +148,12 @@ def slack_resolve_message():
     make_response("Your issue has been resolved. Thank you for using the Alfred slack bot. We hope you have a nice day!", 200)
     return req['token']
 
-@app.route("/hello", methods=["POST"])
-def slash_hello():
-    slack_client.chat_postMessage(channel="alfred-dev-internal", text="test test")
 
+@app.route("/hello", methods=["POST"])
+@verify_slack_token
+def slash_hello():
+    # slack_client.chat_postMessage(channel="alfred-dev-internal", text="test test")
+    print("hello")
     return make_response("", 200)
 
 
