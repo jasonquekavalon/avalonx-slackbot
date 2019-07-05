@@ -35,9 +35,8 @@ def verify_slack_token(func):
 def msg_validation(req):
     return req.get("text")
 
-
-@verify_slack_token
 @app.route("/slack/gcp_support", methods=["POST"])
+@verify_slack_token
 def slack_gcp():
 
     # Save the message to the database using the datastore client
@@ -86,8 +85,8 @@ def slack_gcp():
 
     return req['token']
 
-@verify_slack_token
 @app.route("/response", methods=["POST"])
+@verify_slack_token
 def slack_response():
     req = request.form.to_dict()
 
@@ -126,8 +125,8 @@ def slack_get():
     queries = datastore_client.get_message(ds_client, "message", message_query)
     return make_response(str(queries), 200)
 
-@verify_slack_token
 @app.route("/status", methods=["POST"])
+@verify_slack_token
 def slack_status():
     req = request.form.to_dict()
     friendly_id = req['text']
@@ -136,8 +135,8 @@ def slack_status():
     make_response(f"Your status for ticket with ID = {friendly_id} is *{status}*", 200)
     return req['token']
 
-@verify_slack_token
 @app.route("/resolve_message", methods=["POST"])
+@verify_slack_token
 def slack_resolve_message():
     req = request.form.to_dict()
     friendly_id = req['text'].split()[0]
