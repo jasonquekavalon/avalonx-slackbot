@@ -37,7 +37,6 @@ def verify_slack_token(func):
 def msg_validation(req):
     return req.get("text")
 
-
 @app.route("/slack/gcp_support", methods=["POST"])
 @verify_slack_token
 def slack_gcp():
