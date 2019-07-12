@@ -79,7 +79,7 @@ def slack_gcp():
             internal_message = f"*{req['user_name']}* from workspace *{req['team_domain']}* has a question in {req['channel_name']}: *{following_message}*. To respond, type `/avalonx-respond {friendly_id} <response>`."
             slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=internal_message)
         
-        make_response(message + f"Your Message ID is {friendly_id}. To check the status of your message, type `/avalonx-message-status {friendly_id}`.", 200)   
+        make_response(message + f"Your Message ID is *{friendly_id}*. To check the status of your message, type `/avalonx-message-status {friendly_id}`.", 200)   
 
     else:
         make_response("You're missing the required properties", 400)
