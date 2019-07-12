@@ -132,7 +132,7 @@ def slack_status():
     req = request.form.to_dict()
     friendly_id = req['text']
     status = datastore_client.get_status(ds_client, "message", friendly_id)
-
+    
     make_response(f"Your status for ticket with ID *{friendly_id}* is *{status}*", 200)
     return req['token']
 
