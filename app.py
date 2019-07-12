@@ -133,7 +133,7 @@ def slack_status():
     friendly_id = req['text']
     status = datastore_client.get_status(ds_client, "message", friendly_id)
 
-    make_response(f"Your status for ticket with ID = {friendly_id} is *{status}*", 200)
+    make_response(f"Your status for ticket with ID *{friendly_id}* is *{status}*", 200)
     return req['token']
 
 @app.route("/resolve_message", methods=["POST"])
