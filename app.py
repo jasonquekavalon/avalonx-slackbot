@@ -149,6 +149,13 @@ def slack_resolve_message():
     make_response("Your issue has been resolved. Thank you for using the Alfred slack bot. We hope you have a nice day!", 200)
     return req['token']
 
+@app.route("/screenshot", methods=["POST"])
+@verify_slack_token
+def slack_screenshot():
+    req = request.form.to_dict()
+    friendly_id = req['text']
+    
+
 
 @app.route("/hello", methods=["POST"])
 @verify_slack_token
