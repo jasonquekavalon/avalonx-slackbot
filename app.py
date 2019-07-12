@@ -51,7 +51,6 @@ def slack_gcp():
 
     req["status"] = "Pending"
     friendly_id = f"{req['team_domain']}-{count}"    
-    req["status"] = "Pending"
     req['friendly_id'] = friendly_id
     # send channel a response
     if (msg_validation(req)):
@@ -80,7 +79,7 @@ def slack_gcp():
             internal_message = f"*{req['user_name']}* from workspace *{req['team_domain']}* has a question in {req['channel_name']}: *{following_message}*. To respond, type `/avalonx-respond {friendly_id} <response>`."
             slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=internal_message)
         
-        make_response(message + f"Your Message ID is {friendly_id}. To check the status of your message, type `/avalonx-message-status {friendly_id}`.", 200)   
+        make_response(message + f"Your Message ID is *{friendly_id}*. To check the status of your message, type `/avalonx-message-status {friendly_id}`.", 200)   
 
     else:
         make_response("You're missing the required properties", 400)
@@ -134,7 +133,7 @@ def slack_status():
     friendly_id = req['text']
     status = datastore_client.get_status(ds_client, "message", friendly_id)
 
-    make_response(f"Your status for ticket with ID = {friendly_id} is *{status}*", 200)
+    make_response(f"Your status for ticket with ID *{friendly_id}* is *{status}*", 200)
     return req['token']
 
 @app.route("/resolve_message", methods=["POST"])
@@ -148,6 +147,19 @@ def slack_resolve_message():
     slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=f"*{req['user_name']}* from workspace *{req['team_domain']}* has resolved their ticket with Message ID *{friendly_id}*")
     make_response("Your issue has been resolved. Thank you for using the Alfred slack bot. We hope you have a nice day!", 200)
     return req['token']
+
+@app.route("/screenshot", methods=["POST"])
+@verify_slack_token
+def slack_screenshot():
+    req = request.form.to_dict()
+    friendly_id = req['text']
+    # req["screenshot"] = "yes"
+    site = "http://127.0.0.1:5000/upload-image"
+
+    slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=f"*{req['user_name']}* from workspace *{req['team_domain']}* is sending in screenshots under Message ID *{friendly_id}*")
+    make_response(f"Please upload your screenshots at: *{site}*. Thank you!", 200)
+    return req['token']
+
 
 
 @app.route("/hello", methods=["POST"])
