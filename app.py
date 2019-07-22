@@ -153,9 +153,11 @@ def slack_resolve_message():
 def slack_screenshot():
     req = request.form.to_dict()
     friendly_id = req['text']
+    team_id = req["team_domain"]
     # req["screenshot"] = "yes"
-    site = "http://127.0.0.1:5000/upload-image"
-
+    # site = f"http://127.0.0.1:5000/upload-image/?message_id={friendly_id}&team_name={team_id}"
+    
+    site = f"https://alfred-dev-1.appspot.com/?message_id={friendly_id}&team_name={team_id}"
     slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=f"*{req['user_name']}* from workspace *{req['team_domain']}* is submitting screenshots under Message ID: *{friendly_id}*")
     return make_response(f"Please upload your screenshots at: {site}. Thank you!", 200)
 #     return req['token']
