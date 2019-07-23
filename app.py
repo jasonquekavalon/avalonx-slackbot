@@ -5,6 +5,7 @@ import datastore_client
 import uuid
 import logging
 from uuid import UUID
+from google.cloud import storage
 
 logger = logging.getLogger()
 slack_client = WebClient(cfg.SLACK_BOT_TOKEN)
@@ -13,9 +14,13 @@ app = Flask(__name__)
 
 DEFAULT_BACKEND_CHANNEL = "alfred-dev-internal"
 
+bucket_name = "alfred-uploaded-images"
+
+
 
 # Create the datastore client
 ds_client = datastore_client.create_client("alfred-dev-1")
+
 
 # TODO: Add checks for all responses from slack api calls
 
@@ -160,7 +165,23 @@ def slack_screenshot():
     return make_response(f"Please upload your screenshots at: {site}. Thank you!", 200)
 #     return req['token']
 
-@
+@app.route("/getscreenshot", methods=["POST"])
+def slack_getscreenshot():
+    req = request.form.to_dict()
+    friendly_id = req['text'].split()[0]
+    filename = req['text'].split()[1]
+
+    storage_client = storage.Client()
+    bucket = storage_client.get_bucket(bucket_name)
+    blob_path = req["user_name"] + "/" + friendly_id + "/" + filename
+    blob = bucket(blob_path)
+
+    file = blob.download_to_file(blob_path)
+
+    return make_response(file, 200)
+
+
+
 
 
 
