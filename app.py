@@ -157,7 +157,7 @@ def slack_screenshot():
     # req["screenshot"] = "yes"
     # site = f"http://127.0.0.1:5000/upload-image/?message_id={friendly_id}&team_name={team_id}"
     
-    website = f"https://alfred-dev-1.appspot.com/?friendly_id={friendly_id}&team_name={team_id}"
+    website = f"https://alfred-dev-1.appspot.com/?friendly_id={friendly_id}&team_id={team_id}"
     slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=f"*{req['user_name']}* from workspace *{req['team_domain']}* is submitting screenshots under Message ID: *{friendly_id}*")
     return make_response(f"Please upload your screenshots at: {website}. Thank you!", 200)
 #     return req['token']
