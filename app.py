@@ -10,7 +10,7 @@ import datastore_client
 import config as cfg
 from log import log
 
-logger = log.getLogger()
+logger = log.get_logger()
 slack_client = WebClient(cfg.SLACK_BOT_TOKEN)
 SLACK_VERIFICATION_TOKEN = cfg.SLACK_VERIFICATION_TOKEN
 
