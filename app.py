@@ -88,9 +88,9 @@ def slack_gcp():
         count = len(list(query.fetch())) + 1
         friendly_id = f"{req['team_domain']}-{count}"
         req['friendly_id'] = friendly_id
+        req["status"] = "Pending"
         thread = Thread(target=process, kwargs={'req': req, 'friendly_id': friendly_id})  # Start background thread to process
         thread.start()
-        req["status"] = "Pending"
 
         return make_response(f"Your Message ID is *{friendly_id}*. To check the status of your message, type `/avalonx-message-status {friendly_id}`.", 200)
     else:
