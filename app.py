@@ -171,6 +171,7 @@ def slack_getscreenshot():
     req = request.form.to_dict()
     friendly_id = req['text'].split()[0]
     team_domain = req['team_domain']
+    filename = req['file name']
     # filename = req['text'].split()[1]
 
     storage_client = storage.Client()
@@ -180,12 +181,11 @@ def slack_getscreenshot():
     pics = list(id_bucket.list_blobs())
 
     for blob in pics:
-        file 
-
-    # blob_path = req["team_domain"] + "/" + friendly_id + "/" + filename
+        for name in filename:
+            file = blob.download_to_file(name)
+            slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=f"{file}")
+        # blob_path = team_domain + "/" + friendly_id + "/" + filename
     # blob = bucket(blob_path)
-
-    # file = blob.download_to_file(blob_path)
 
     return make_response("", 200)
 
