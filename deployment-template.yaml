@@ -28,10 +28,32 @@ spec:
           valueFrom:
             configMapKeyRef:
               key: SLACK_BOT_TOKEN
+              name: alfred-gcp-support-config
+        - name: SF_ISSUER
+          valueFrom:
+            configMapKeyRef:
+              key: SF_ISSUER
               name: SERVICE_NAME-config
-        image: eu.gcr.io/alfred-dev-1/alfred-gcp-support:COMMIT_SHA
+        - name: SF_SUBJECT
+          valueFrom:
+            configMapKeyRef:
+              key: SF_SUBJECT
+              name: SERVICE_NAME-config
+        volumeMounts:
+          - name: salesforce-key
+            mountPath: /root/salesforce.key
+            subPath: salesforce.key
+        image: eu.gcr.io/alfred-dev-1/alfred-gcp-support
         imagePullPolicy: IfNotPresent
         name: github-jasonquekavalon-avalonx-slackbot
         resources: {}
         terminationMessagePath: /dev/termination-log
         terminationMessagePolicy: File
+      volumes: 
+      - name: salesforce-key
+        secret:
+          secretName: salesforce-key
+          items: 
+          - key: salesforce.key
+            path: salesforce.key
+
