@@ -2,3 +2,6 @@ slackclient==2.0.0
 flask
 gunicorn
 google-cloud-datastore
+pyjwt
+cryptography
+python-json-logger==0.1.10
