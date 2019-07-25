@@ -53,28 +53,14 @@ def msg_validation(req):
 def slack_gcp():
     logger.info("Request received for gcp support...")
 
-    # Save the message to the database using the datastore client
-
-    req = request.form.to_dict()
-
-    query = ds_client.query(kind='message')
-    query.add_filter('team_domain', "=", req['team_domain'])
-    count = len(list(query.fetch())) + 1
-
-    req["status"] = "Pending"
-    friendly_id = f"{req['team_domain']}-{count}"
-    req['friendly_id'] = friendly_id
-    # send channel a response
-    if (msg_validation(req)):
-
+    def process(req, friendly_id=None):
         if "message_id" not in req['text']:
-
             message = f"*{req['user_name']}* from workspace *{req['team_domain']}* says: *{req['text']}*. "
             friendly_id = datastore_client.add_item(ds_client, "message", req, friendly_id)
             # Add to salesforce
-            thread = Thread(target=create_sf_case)  # Create background task to fill SalesForce
-            thread.start()
-            # create_sf_case()  # This line should be asynchronous
+            # thread = Thread(target=create_sf_case)  # Create background task to fill SalesForce
+            # thread.start()
+            create_sf_case()  # This line should be asynchronous
 
             internal_message = f"*{req['user_name']}* from workspace *{req['team_domain']}* has a question in {req['channel_name']}: *{req['text']}*. To respond, type `/avalonx-respond {friendly_id} <response>`."
             slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=internal_message)
@@ -94,9 +80,24 @@ def slack_gcp():
 
             internal_message = f"*{req['user_name']}* from workspace *{req['team_domain']}* has a question in {req['channel_name']}: *{following_message}*. To respond, type `/avalonx-respond {friendly_id} <response>`."
             slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=internal_message)
+            
+    # Save the message to the database using the datastore client
+    if (msg_validation(req)):
+        req = request.form.to_dict()
+
+        friendly_id = f"{req['team_domain']}-{count}"
+        req['friendly_id'] = friendly_id
+        # send channel a response
+        thread = Thread(target=process, kwargs={'req': req, 'friendly_id': friendly_id})  # Start background thread to process
+        thread.start()
+        
+        query = ds_client.query(kind='message')
+        query.add_filter('team_domain', "=", req['team_domain'])
+        count = len(list(query.fetch())) + 1
+
+        req["status"] = "Pending"
 
         return make_response(message + f"Your Message ID is *{friendly_id}*. To check the status of your message, type `/avalonx-message-status {friendly_id}`.", 200)
-
     else:
         return make_response("You're missing the required properties", 400)
 
