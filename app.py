@@ -1,5 +1,4 @@
 import uuid
-import logging
 from uuid import UUID
 
 from flask import Flask, request, make_response, Response
@@ -9,8 +8,9 @@ from slack import WebClient
 from auth import get_token
 import datastore_client
 import config as cfg
+from log import log
 
-logger = logging.getLogger()
+logger = log.getLogger()
 slack_client = WebClient(cfg.SLACK_BOT_TOKEN)
 SLACK_VERIFICATION_TOKEN = cfg.SLACK_VERIFICATION_TOKEN
 
