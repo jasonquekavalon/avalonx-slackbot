@@ -24,19 +24,19 @@ ds_client = datastore_client.create_client("alfred-dev-1")
 
 # TODO: Add checks for all responses from slack api calls
 
-def verify_slack_token(func):
-    """This should be used for ALL requests in the future"""
-    def wrapper():
-        req = request.form.to_dict()
-        print(req)
-        request_token = req['token']
-        print(f"req token: {request_token}")
-        if SLACK_VERIFICATION_TOKEN != request_token:
-            # print("Error: invalid verification token!")
-            return make_response("Request contains invalid Slack verification token", 403)
-        else:
-            return func()
-    return wrapper
+# def verify_slack_token(func):
+#     """This should be used for ALL requests in the future"""
+#     def wrapper():
+#         req = request.form.to_dict()
+#         print(req)
+#         request_token = req['token']
+#         print(f"req token: {request_token}")
+#         if SLACK_VERIFICATION_TOKEN != request_token:
+#             # print("Error: invalid verification token!")
+#             return make_response("Request contains invalid Slack verification token", 403)
+#         else:
+#             return func()
+#     return wrapper
 
 @app.route("/slack/validation", methods=["POST"])
 def msg_validation(req):
@@ -55,14 +55,14 @@ def slack_gcp():
     count = len(list(query.fetch())) + 1
 
     req["status"] = "Pending"
-    friendly_id = f"{req['team_domain']}-{count}"    
+    friendly_id = f"{req['team_domain']}-{count}"   
     req['friendly_id'] = friendly_id
     # send channel a response
     if (msg_validation(req)):
         
         if "message_id" not in req['text']:
             
-            message = f"*{req['user_name']}* from workspace *{req['team_domain']}* says: *{req['text']}*. "
+            message = f"*{req['user_name']}* from workspace *{req['team_domain']}* says: *{req['text']}*."
             friendly_id = datastore_client.add_item(ds_client, "message", req, friendly_id)
             
             internal_message = f"*{req['user_name']}* from workspace *{req['team_domain']}* has a question in {req['channel_name']}: *{req['text']}*. To respond, type `/avalonx-respond {friendly_id} <response>`."

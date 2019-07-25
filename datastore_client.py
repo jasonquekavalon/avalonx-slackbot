@@ -39,6 +39,11 @@ def get_message(client, kind, id):
     message = client.get(key)
     return message.get("message")
 
+def get_filename(client, kind, id):
+    key = client.key('message', id)
+    filename = client.get(key)
+    return filename.get('file name')
+
 def get_status(client, kind, id):
 
     key = client.key('message', id)
@@ -89,3 +94,13 @@ def update_response(client, kind, data, id):
     client.put(message)
    
     return message["response"]
+
+def update_filename(client, kind, data, id):
+    key = client.key(kind, id)
+    Entity = client.get(key)
+    for message in Entity:
+        Entity[message] = Entity[message]
+    Entity["file name"] = data
+    client.put(Entity)
+
+    return Entity["file name"]    
