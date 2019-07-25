@@ -196,7 +196,7 @@ def create_sf_case(body=None):
         "Type": "Question",
         "Origin": "Web",
         "Reason": "",
-        "Subject": "test from postman222"
+        "Subject": "test from gcp"
     }
 
     header = {
