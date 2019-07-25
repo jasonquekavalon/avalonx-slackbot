@@ -5,7 +5,7 @@ import datastore_client
 import uuid
 import logging
 from uuid import UUID
-from google.cloud import storage
+# from google.cloud import storage
 
 logger = logging.getLogger()
 slack_client = WebClient(cfg.SLACK_BOT_TOKEN)
@@ -167,18 +167,27 @@ def slack_screenshot():
 
 @app.route("/getscreenshot", methods=["POST"])
 def slack_getscreenshot():
+    # /getss <friendly_id> 
     req = request.form.to_dict()
     friendly_id = req['text'].split()[0]
-    filename = req['text'].split()[1]
+    team_domain = req['team_domain']
+    # filename = req['text'].split()[1]
 
     storage_client = storage.Client()
-    bucket = storage_client.get_bucket(bucket_name)
-    blob_path = req["user_name"] + "/" + friendly_id + "/" + filename
-    blob = bucket(blob_path)
 
-    file = blob.download_to_file(blob_path)
+    team_bucket = storage_client.get_bucket(bucket_name) #team_domain
+    id_bucket = storage_client.get_bucket(team_bucket)
+    pics = list(id_bucket.list_blobs())
 
-    return make_response(file, 200)
+    for blob in pics:
+        file 
+
+    # blob_path = req["team_domain"] + "/" + friendly_id + "/" + filename
+    # blob = bucket(blob_path)
+
+    # file = blob.download_to_file(blob_path)
+
+    return make_response("", 200)
 
 
 
