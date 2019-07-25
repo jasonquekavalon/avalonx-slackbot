@@ -43,7 +43,7 @@ spec:
           - name: salesforce-key
             mountPath: /root/salesforce.key
             subPath: salesforce.key
-        image: eu.gcr.io/alfred-dev-1/alfred-gcp-support
+        image: eu.gcr.io/alfred-dev-1/alfred-gcp-support:COMMIT_SHA
         imagePullPolicy: IfNotPresent
         name: github-jasonquekavalon-avalonx-slackbot
         resources: {}
