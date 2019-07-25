@@ -92,7 +92,7 @@ def slack_gcp():
         thread = Thread(target=process, kwargs={'req': req, 'friendly_id': friendly_id})  # Start background thread to process
         thread.start()
 
-        return make_response(f"Your Message ID is *{friendly_id}*. To check the status of your message, type `/avalonx-message-status {friendly_id}`.", 200)
+        return make_response(f"Your Message ID is *{friendly_id}*. To check the status of your message, type `/avalonx-message-status {friendly_id}`. To upload a screenshot, type `/avalonx-screenshot {friendly_id}`.", 200)   
     else:
         return make_response("You're missing the required properties", 400)
 
@@ -168,13 +168,12 @@ def slack_resolve_message():
 def slack_screenshot():
     req = request.form.to_dict()
     friendly_id = req['text']
-    # req["screenshot"] = "yes"
-    site = "http://127.0.0.1:5000/upload-image"
-
+    team_id = req["team_domain"]
+    # site = f"http://127.0.0.1:5000/upload-image/?message_id={friendly_id}&team_name={team_id}"
+    
+    website = f"https://alfred-dev-1.appspot.com/?friendly_id={friendly_id}&team_id={team_id}"
     slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=f"*{req['user_name']}* from workspace *{req['team_domain']}* is submitting screenshots under Message ID: *{friendly_id}*")
-    return make_response(f"Please upload your screenshots at: {site}. Thank you!", 200)
-#     return req['token']
-
+    return make_response(f"Please upload your screenshots at: {website}. Thank you!", 200)
 
 @app.route("/hello", methods=["POST"])
 # @verify_slack_token
