@@ -50,6 +50,7 @@ def msg_validation(req):
 @app.route("/slack/gcp_support", methods=["POST"])
 # @verify_slack_token
 def slack_gcp():
+    logger.info("Request received for gcp support...")
 
     # Save the message to the database using the datastore client
 
