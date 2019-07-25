@@ -59,9 +59,7 @@ def slack_gcp():
             message = f"*{req['user_name']}* from workspace *{req['team_domain']}* says: *{req['text']}*. "
             friendly_id = datastore_client.add_item(ds_client, "message", req, friendly_id)
             # Add to salesforce
-            # thread = Thread(target=create_sf_case)  # Create background task to fill SalesForce
-            # thread.start()
-            create_sf_case()  # This line should be asynchronous
+            create_sf_case()
 
             internal_message = f"*{req['user_name']}* from workspace *{req['team_domain']}* has a question in {req['channel_name']}: *{req['text']}*. To respond, type `/avalonx-respond {friendly_id} <response>`."
             slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=internal_message)
