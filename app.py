@@ -167,39 +167,34 @@ def slack_screenshot():
 
 @app.route("/getscreenshot", methods=["POST"])
 def slack_getscreenshot():
-    # /getss <friendly_id> 
     req = request.form.to_dict()
     friendly_id = req['text'].split()[0]
     team_domain = req['team_domain']
-    # filename = req['file name']
-    # filename = req['text'].split()[1]
 
     storage_client = storage.Client()
-
-    team_bucket = storage_client.get_bucket(bucket_name) #team_domain
-    id_bucket = storage_client.get_bucket(team_bucket)
-    pics = list(id_bucket.list_blobs())
-
     count = 1
+    prefix = team_domain + "/" + friendly_id
 
-    for blob in pics:
-        # for name in filename:
+    for blob in list_blobs_with_prefix(bucket_name, prefix=prefix):
         file = blob.download_to_filename("hello.png") #(name)
 
         with open("hello.png", "rb") as image:
             f = image.read()
             b = bytearray(f)
-            # print b[0]
         # count += count
-            slack_client.files_upload(token=cfg.SLACK_BOT_TOKEN, channel=[DEFAULT_BACKEND_CHANNEL], file=b, filename="hello2")
-        # blob_path = team_domain + "/" + friendly_id + "/" + filename
-    # blob = bucket(blob_path)
-
+            slack_client.files_upload(token=cfg.SLACK_BOT_TOKEN, channels=DEFAULT_BACKEND_CHANNEL, file=b, filename="hello2")
     return make_response("", 200)
 
 
+def list_blobs_with_prefix(bucket_name, prefix):
+    """Lists all the blobs in the bucket that begin with the prefix.
 
-
+    This can be used to list all blobs in a "folder", e.g. "public/".
+    """
+    storage_client = storage.Client()
+    blobs = storage_client.list_blobs(bucket_name, prefix=prefix)
+    for blob in blobs:
+        yield blob
 
 
 @app.route("/hello", methods=["POST"])
