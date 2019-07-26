@@ -184,9 +184,9 @@ def slack_getscreenshot():
 
     for blob in pics:
         # for name in filename:
-        file = blob.download_to_filename("hello") #(name)
+        file = blob.download_to_filename("hello.png") #(name)
 
-        with open("hello", "rb") as image:
+        with open("hello.png", "rb") as image:
             f = image.read()
             b = bytearray(f)
             # print b[0]
