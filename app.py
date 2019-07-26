@@ -191,7 +191,7 @@ def slack_getscreenshot():
             b = bytearray(f)
             # print b[0]
         # count += count
-            slack_client.files_upload(channel=[DEFAULT_BACKEND_CHANNEL], file=b, filename="hello2")
+            slack_client.files_upload(token=cfg.SLACK_BOT_TOKEN, channel=[DEFAULT_BACKEND_CHANNEL], file=b, filename="hello2")
         # blob_path = team_domain + "/" + friendly_id + "/" + filename
     # blob = bucket(blob_path)
 
