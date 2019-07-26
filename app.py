@@ -180,10 +180,13 @@ def slack_getscreenshot():
     id_bucket = storage_client.get_bucket(team_bucket)
     pics = list(id_bucket.list_blobs())
 
+    count = 1
+
     for blob in pics:
-        for name in filename:
-            file = blob.download_to_file(name)
-            slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=f"{file}")
+        # for name in filename:
+        file = blob.download_to_file("hello" + count) #(name)
+        count += count
+        slack_client.files_upload(file)
         # blob_path = team_domain + "/" + friendly_id + "/" + filename
     # blob = bucket(blob_path)
 
