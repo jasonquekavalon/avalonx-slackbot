@@ -171,7 +171,7 @@ def slack_getscreenshot():
     req = request.form.to_dict()
     friendly_id = req['text'].split()[0]
     team_domain = req['team_domain']
-    filename = req['file name']
+    # filename = req['file name']
     # filename = req['text'].split()[1]
 
     storage_client = storage.Client()
