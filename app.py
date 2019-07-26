@@ -5,7 +5,7 @@ import datastore_client
 import uuid
 import logging
 from uuid import UUID
-# from google.cloud import storage
+from google.cloud import storage
 
 logger = logging.getLogger()
 slack_client = WebClient(cfg.SLACK_BOT_TOKEN)
