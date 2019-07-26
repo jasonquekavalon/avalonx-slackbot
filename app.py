@@ -184,7 +184,7 @@ def slack_getscreenshot():
 
     for blob in pics:
         # for name in filename:
-        file = blob.download_to_file("hello" + count) #(name)
+        file = blob.download_to_file("hello") #(name)
         count += count
         slack_client.files_upload(file)
         # blob_path = team_domain + "/" + friendly_id + "/" + filename
