@@ -5,6 +5,7 @@ import datastore_client
 import uuid
 import logging
 from uuid import UUID
+from google.cloud import storage
 
 logger = logging.getLogger()
 slack_client = WebClient(cfg.SLACK_BOT_TOKEN)
@@ -13,25 +14,29 @@ app = Flask(__name__)
 
 DEFAULT_BACKEND_CHANNEL = "alfred-dev-internal"
 
+bucket_name = "alfred-uploaded-images"
+
+
 
 # Create the datastore client
 ds_client = datastore_client.create_client("alfred-dev-1")
 
+
 # TODO: Add checks for all responses from slack api calls
 
-def verify_slack_token(func):
-    """This should be used for ALL requests in the future"""
-    def wrapper():
-        req = request.form.to_dict()
-        print(req)
-        request_token = req['token']
-        print(f"req token: {request_token}")
-        if SLACK_VERIFICATION_TOKEN != request_token:
-            # print("Error: invalid verification token!")
-            return make_response("Request contains invalid Slack verification token", 403)
-        else:
-            return func()
-    return wrapper
+# def verify_slack_token(func):
+#     """This should be used for ALL requests in the future"""
+#     def wrapper():
+#         req = request.form.to_dict()
+#         print(req)
+#         request_token = req['token']
+#         print(f"req token: {request_token}")
+#         if SLACK_VERIFICATION_TOKEN != request_token:
+#             # print("Error: invalid verification token!")
+#             return make_response("Request contains invalid Slack verification token", 403)
+#         else:
+#             return func()
+#     return wrapper
 
 @app.route("/slack/validation", methods=["POST"])
 def msg_validation(req):
@@ -50,14 +55,14 @@ def slack_gcp():
     count = len(list(query.fetch())) + 1
 
     req["status"] = "Pending"
-    friendly_id = f"{req['team_domain']}-{count}"    
+    friendly_id = f"{req['team_domain']}-{count}"   
     req['friendly_id'] = friendly_id
     # send channel a response
     if (msg_validation(req)):
         
         if "message_id" not in req['text']:
             
-            message = f"*{req['user_name']}* from workspace *{req['team_domain']}* says: *{req['text']}*. "
+            message = f"*{req['user_name']}* from workspace *{req['team_domain']}* says: *{req['text']}*."
             friendly_id = datastore_client.add_item(ds_client, "message", req, friendly_id)
             
             internal_message = f"*{req['user_name']}* from workspace *{req['team_domain']}* has a question in {req['channel_name']}: *{req['text']}*. To respond, type `/avalonx-respond {friendly_id} <response>`."
@@ -66,7 +71,7 @@ def slack_gcp():
             friendly_id = req['text'].split()[1] #/avalonx message_id 1283219837857402 <message>
             following_message_split = req["text"].split(maxsplit=2)[2:]
             following_message = following_message_split[0]
-            
+
             message = f"*{req['user_name']}* from workspace *{req['team_domain']}* says: *{following_message}*. "
             
             stored_messages = datastore_client.get_saved_messages(ds_client, "message", friendly_id)
@@ -160,6 +165,36 @@ def slack_screenshot():
     return make_response(f"Please upload your screenshots at: {site}. Thank you!", 200)
 #     return req['token']
 
+@app.route("/getscreenshot", methods=["POST"])
+def slack_getscreenshot():
+    req = request.form.to_dict()
+    friendly_id = req['text'].split()[0]
+    team_domain = req['team_domain']
+
+    storage_client = storage.Client()
+    count = 1
+    prefix = team_domain + "/" + friendly_id
+
+    for blob in list_blobs_with_prefix(bucket_name, prefix=prefix):
+        file = blob.download_to_filename("hello.png") #(name)
+
+        with open("hello.png", "rb") as image:
+            f = image.read()
+            b = bytearray(f)
+        # count += count
+            slack_client.files_upload(token=cfg.SLACK_BOT_TOKEN, channels=DEFAULT_BACKEND_CHANNEL, file=b, filename="hello2")
+    return make_response("", 200)
+
+
+def list_blobs_with_prefix(bucket_name, prefix):
+    """Lists all the blobs in the bucket that begin with the prefix.
+
+    This can be used to list all blobs in a "folder", e.g. "public/".
+    """
+    storage_client = storage.Client()
+    blobs = storage_client.list_blobs(bucket_name, prefix=prefix)
+    for blob in blobs:
+        yield blob
 
 
 @app.route("/hello", methods=["POST"])
