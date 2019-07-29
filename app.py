@@ -196,7 +196,7 @@ def create_sf_case(friendly_id, message):
         "Subject": message,
         "AccountId": friendly_id,
     }
-
+# comment
     header = {
         "Authorization": "Bearer {}".format(token)
     }
