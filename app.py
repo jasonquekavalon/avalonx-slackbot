@@ -10,7 +10,7 @@ from auth import get_token
 import datastore_client
 import config as cfg
 from log import log
-
+log.setup_logger()
 logger = log.get_logger()
 slack_client = WebClient(cfg.SLACK_BOT_TOKEN)
 SLACK_VERIFICATION_TOKEN = cfg.SLACK_VERIFICATION_TOKEN
@@ -59,7 +59,7 @@ def slack_gcp():
             message = f"*{req['user_name']}* from workspace *{req['team_domain']}* says: *{req['text']}*. "
             friendly_id = datastore_client.add_item(ds_client, "message", req, friendly_id)
             # Add to salesforce
-            create_sf_case()
+            create_sf_case(friendly_id, req)
 
             internal_message = f"*{req['user_name']}* from workspace *{req['team_domain']}* has a question in {req['channel_name']}: *{req['text']}*. To respond, type `/avalonx-respond {friendly_id} <response>`."
             slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=internal_message)
@@ -98,6 +98,7 @@ def slack_gcp():
 @app.route("/response", methods=["POST"])
 # @verify_slack_token
 def slack_response():
+    logger.info("Request received for response...")
     req = request.form.to_dict()
 
     friendly_id = req['text'].split()[0]  # Should be a uuid if it was sent in as the first word
@@ -151,6 +152,7 @@ def slack_status():
 @app.route("/resolve_message", methods=["POST"])
 # @verify_slack_token
 def slack_resolve_message():
+    logger.info("Request received for resolve_message...")
     req = request.form.to_dict()
     friendly_id = req['text'].split()[0]
     updated_status = "Completed"
@@ -164,6 +166,7 @@ def slack_resolve_message():
 @app.route("/screenshot", methods=["POST"])
 # @verify_slack_token
 def slack_screenshot():
+    logger.info("Request received for screenshot...")
     req = request.form.to_dict()
     friendly_id = req['text']
     team_id = req["team_domain"]
@@ -181,7 +184,7 @@ def slash_hello():
     return make_response("", 200)
 
 
-def create_sf_case(body=None):
+def create_sf_case(friendly_id, message):
     # You should unpack the fields we want to save into Salesforce here (maybe all fields for now) into their appropriate SF equivalents
     token = get_token()
 
@@ -190,7 +193,8 @@ def create_sf_case(body=None):
         "Type": "Question",
         "Origin": "Web",
         "Reason": "",
-        "Subject": "test from gcp"
+        "Subject": message,
+        "AccountId": friendly_id,
     }
 
     header = {
