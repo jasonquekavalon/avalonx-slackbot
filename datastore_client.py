@@ -89,3 +89,13 @@ def update_response(client, kind, data, id):
     client.put(message)
    
     return message["response"]
+
+def update_filename(client, kind, data, id):
+    key = client.key(kind, id)
+    Entity = client.get(key)
+    for message in Entity:
+        Entity[message] = Entity[message]
+    Entity["file name"] = data
+    client.put(Entity)
+
+    return Entity["file name"]  
