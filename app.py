@@ -226,11 +226,11 @@ def create_sf_case(friendly_id, team_id, contact_id, message):
         "Type": "Question",
         "Origin": "Web",
         "Reason": "",
-        "AccountId": friendly_id,
-        "OwnerId": team_id, 
-        "ContactId": contact_id,
+        # "AccountId": friendly_id,
+        # "OwnerId": team_id, 
+        # "ContactId": contact_id,
         "Subject": message,
-        "Status": "Pending"
+        # "Status": "Pending"
     }
 # comment
     header = {
