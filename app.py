@@ -1,15 +1,24 @@
-from flask import Flask, request, make_response, Response
-import config as cfg
-from slack import WebClient
-import datastore_client
 import uuid
-import logging
 from uuid import UUID
-from google.cloud import storage
+from threading import Thread
 
-logger = logging.getLogger()
+from flask import Flask, request, make_response, Response
+import requests
+from slack import WebClient
+
+from auth import get_token
+import datastore_client
+from google.cloud import storage
+import config as cfg
+import logging
+from log import log
+
+logger = log.get_logger()
 slack_client = WebClient(cfg.SLACK_BOT_TOKEN)
 SLACK_VERIFICATION_TOKEN = cfg.SLACK_VERIFICATION_TOKEN
+
+SF_CASE_URL = "https://avalonsolutions--PreProd.cs109.my.salesforce.com/services/data/v39.0/sobjects/Case"
+
 app = Flask(__name__)
 
 DEFAULT_BACKEND_CHANNEL = "alfred-dev-internal"
@@ -38,18 +47,18 @@ ds_client = datastore_client.create_client("alfred-dev-1")
 #             return func()
 #     return wrapper
 
+
+
 @app.route("/slack/validation", methods=["POST"])
 def msg_validation(req):
     return req.get("text")
 
+
 @app.route("/slack/gcp_support", methods=["POST"])
 # @verify_slack_token
 def slack_gcp():
-
-    # Save the message to the database using the datastore client
-
+    logger.info("Request received for gcp support...")
     req = request.form.to_dict()
-
     query = ds_client.query(kind = 'message')
     query.add_filter('team_domain', "=", req['team_domain'])
     count = len(list(query.fetch())) + 1
@@ -63,47 +72,57 @@ def slack_gcp():
         if "message_id" not in req['text']:
             
             message = f"*{req['user_name']}* from workspace *{req['team_domain']}* says: *{req['text']}*."
+
             friendly_id = datastore_client.add_item(ds_client, "message", req, friendly_id)
-            
+            # Add to salesforce
+            create_sf_case()
+
             internal_message = f"*{req['user_name']}* from workspace *{req['team_domain']}* has a question in {req['channel_name']}: *{req['text']}*. To respond, type `/avalonx-respond {friendly_id} <response>`."
             slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=internal_message)
         else:
-            friendly_id = req['text'].split()[1] #/avalonx message_id 1283219837857402 <message>
+            friendly_id = req['text'].split()[1]  # /avalonx message_id 1283219837857402 <message>
             following_message_split = req["text"].split(maxsplit=2)[2:]
             following_message = following_message_split[0]
-            
+
             message = f"*{req['user_name']}* from workspace *{req['team_domain']}* says: *{following_message}*. "
-            
+
             stored_messages = datastore_client.get_saved_messages(ds_client, "message", friendly_id)
             if isinstance(stored_messages, str):
                 stored_messages = [stored_messages]
-            stored_messages.append(following_message)           
-            
+            stored_messages.append(following_message)
+
             datastore_client.update_message(ds_client, "message", stored_messages, friendly_id)
-                
+
             internal_message = f"*{req['user_name']}* from workspace *{req['team_domain']}* has a question in {req['channel_name']}: *{following_message}*. To respond, type `/avalonx-respond {friendly_id} <response>`."
             slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=internal_message)
-        
-        return make_response(message + f"Your Message ID is *{friendly_id}*. To check the status of your message, type `/avalonx-message-status {friendly_id}`.", 200)   
+            
+    if msg_validation(req):
+        query = ds_client.query(kind='message')
+        query.add_filter('team_domain', "=", req['team_domain'])
+        count = len(list(query.fetch())) + 1
+        friendly_id = f"{req['team_domain']}-{count}"
+        req['friendly_id'] = friendly_id
+        req["status"] = "Pending"
+        thread = Thread(target=process, kwargs={'req': req, 'friendly_id': friendly_id})  # Start background thread to process
+        thread.start()
 
+        return make_response(f"Your Message ID is *{friendly_id}*. To check the status of your message, type `/avalonx-message-status {friendly_id}`. To upload a screenshot, type `/avalonx-screenshot {friendly_id}`.", 200)   
     else:
         return make_response("You're missing the required properties", 400)
 
-#     return req['token']
 
 @app.route("/response", methods=["POST"])
 # @verify_slack_token
 def slack_response():
     req = request.form.to_dict()
 
-    
     friendly_id = req['text'].split()[0]  # Should be a uuid if it was sent in as the first word
     # Ensure that message_id is a real uuid.
 
     # try:
     #     _ = UUID(str(message_id), version=4)
     # except ValueError:
-    #     # If it's a value error, then the string 
+    #     # If it's a value error, then the string
     #     # is not a valid hex code for a UUID.
     #     return make_response("You're missing the required properties. Response should be in this format `/avalonx-respond <message id> <response>`. ", 400)
 
@@ -114,8 +133,8 @@ def slack_response():
     stored_responses = datastore_client.get_saved_responses(ds_client, "message", friendly_id)
     if stored_responses == None:
         stored_responses = []
-        
-    elif isinstance(stored_responses,str):
+
+    elif isinstance(stored_responses, str):
         stored_responses = [stored_responses]
     stored_responses.append(response_to_message)
     datastore_client.update_response(ds_client, "message", stored_responses, friendly_id)
@@ -124,6 +143,7 @@ def slack_response():
     return make_response("Response has been sent!", 200)
 #     return req['token']
 
+
 @app.route("/get/message", methods=["GET"])
 def slack_get():
     message_query = request.args.get("message_id")
@@ -131,15 +151,18 @@ def slack_get():
     queries = datastore_client.get_message(ds_client, "message", message_query)
     return make_response(str(queries), 200)
 
+
 @app.route("/status", methods=["POST"])
 # @verify_slack_token
 def slack_status():
+    logger.info("Request received for status endpoint...")
     req = request.form.to_dict()
     friendly_id = req['text']
     status = datastore_client.get_status(ds_client, "message", friendly_id)
-    
+
     return make_response(f"Your status for ticket with ID *{friendly_id}* is *{status}*", 200)
 #     return req['token']
+
 
 @app.route("/resolve_message", methods=["POST"])
 # @verify_slack_token
@@ -148,19 +171,21 @@ def slack_resolve_message():
     friendly_id = req['text'].split()[0]
     updated_status = "Completed"
     datastore_client.update_status(ds_client, "message", updated_status, friendly_id)
-  
+
     slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=f"*{req['user_name']}* from workspace *{req['team_domain']}* has resolved their ticket with Message ID *{friendly_id}*")
     return make_response("Your issue has been resolved. Thank you for using the Alfred slack bot. We hope you have a nice day!", 200)
 #     return req['token']
+
 
 @app.route("/screenshot", methods=["POST"])
 # @verify_slack_token
 def slack_screenshot():
     req = request.form.to_dict()
     friendly_id = req['text']
-    # req["screenshot"] = "yes"
-    site = "http://127.0.0.1:5000/upload-image"
-
+    team_id = req["team_domain"]
+    # site = f"http://127.0.0.1:5000/upload-image/?message_id={friendly_id}&team_name={team_id}"
+    
+    website = f"https://alfred-dev-1.appspot.com/?friendly_id={friendly_id}&team_id={team_id}"
     slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=f"*{req['user_name']}* from workspace *{req['team_domain']}* is submitting screenshots under Message ID: *{friendly_id}*")
     return make_response(f"Please upload your screenshots at: {site}. Thank you!", 200)
 #     return req['token']
@@ -196,13 +221,32 @@ def list_blobs_with_prefix(bucket_name, prefix):
     for blob in blobs:
         yield blob
 
-
 @app.route("/hello", methods=["POST"])
 # @verify_slack_token
 def slash_hello():
     # slack_client.chat_postMessage(channel="alfred-dev-internal", text="test test")
     print("hello")
     return make_response("", 200)
+
+def create_sf_case(body=None):
+    # You should unpack the fields we want to save into Salesforce here (maybe all fields for now) into their appropriate SF equivalents
+    token = get_token()
+
+    # See https://developer.salesforce.com/docs/api-explorer/sobject/Case for documentation
+    body = {
+        "Type": "Question",
+        "Origin": "Web",
+        "Reason": "",
+        "Subject": "test from gcp"
+    }
+
+    header = {
+        "Authorization": "Bearer {}".format(token)
+    }
+
+    req = requests.post(SF_CASE_URL, json=body, headers=header)
+
+    print(req.status_code)
 
 
 # Start the Flask server

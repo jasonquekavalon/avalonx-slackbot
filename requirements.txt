@@ -3,3 +3,6 @@ flask
 gunicorn
 google-cloud-datastore
 google-cloud-storage
+pyjwt
+cryptography
+python-json-logger==0.1.10
