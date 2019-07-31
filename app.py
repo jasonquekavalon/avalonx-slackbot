@@ -10,6 +10,7 @@ import datastore_client
 import config as cfg
 from log import log
 import logging
+from google.cloud import storage
 
 log.setup_logger()
 logger = log.get_logger()
@@ -224,8 +225,9 @@ def create_sf_case(friendly_id, message):
         "Type": "Question",
         "Origin": "Web",
         "Reason": "",
+        "AccountId": friendly_id, 
         "Subject": message,
-        "AccountId": friendly_id,
+        "Status": "Pending"
     }
 # comment
     header = {
