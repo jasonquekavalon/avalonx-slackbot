@@ -227,7 +227,7 @@ def create_sf_case(friendly_id, team_id, contact_id, message):
         "Origin": "Web",
         "Reason": "Bug Report",
         # "AccountId": friendly_id,
-        "OwnerId": "elias.djurfeldt@avalonsolutions.com.preprod", 
+        # "OwnerId": "elias.djurfeldt@avalonsolutions.com.preprod", 
         # "ContactId": contact_id,
         "Subject": message,
         # "Status": "Pending"
