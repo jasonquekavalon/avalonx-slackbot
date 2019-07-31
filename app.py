@@ -1,15 +1,16 @@
 import uuid
 from uuid import UUID
 from threading import Thread
-
+import config as cfg
 from flask import Flask, request, make_response, Response
 import requests
 from slack import WebClient
-
 from auth import get_token
 import datastore_client
 import config as cfg
 from log import log
+import logging
+
 log.setup_logger()
 logger = log.get_logger()
 slack_client = WebClient(cfg.SLACK_BOT_TOKEN)
@@ -175,6 +176,36 @@ def slack_screenshot():
     website = f"https://alfred-dev-1.appspot.com/?friendly_id={friendly_id}&team_id={team_id}"
     slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=f"*{req['user_name']}* from workspace *{req['team_domain']}* is submitting screenshots under Message ID: *{friendly_id}*")
     return make_response(f"Please upload your screenshots at: {website}. Thank you!", 200)
+
+@app.route("/getscreenshot", methods=["POST"])
+def slack_getscreenshot():
+    req = request.form.to_dict()
+    friendly_id = req['text'].split()[0]
+    team_domain = req['team_domain']
+
+    storage_client = storage.Client()
+    count = 1
+    prefix = team_domain + "/" + friendly_id
+
+    for blob in list_blobs_with_prefix(bucket_name, prefix=prefix):
+        file = blob.download_to_filename("hello.png") #(name)
+
+        with open("hello.png", "rb") as image:
+            f = image.read()
+            b = bytearray(f)
+        # count += count
+            slack_client.files_upload(token=cfg.SLACK_BOT_TOKEN, channels=DEFAULT_BACKEND_CHANNEL, file=b, filename="hello2")
+    return make_response("", 200)
+
+
+def list_blobs_with_prefix(bucket_name, prefix):
+    """Lists all the blobs in the bucket that begin with the prefix.
+    This can be used to list all blobs in a "folder", e.g. "public/".
+    """
+    storage_client = storage.Client()
+    blobs = storage_client.list_blobs(bucket_name, prefix=prefix)
+    for blob in blobs:
+        yield blob
 
 @app.route("/hello", methods=["POST"])
 # @verify_slack_token
