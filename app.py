@@ -207,7 +207,7 @@ def slack_getscreenshot():
             f = image.read()
             b = bytearray(f)
         # count += count
-            slack_client.files_upload(token=cfg.SLACK_BOT_TOKEN, channels=DEFAULT_BACKEND_CHANNEL, file=b, filename="hello2")
+            slack_client.files_upload(token=cfg.SLACK_BOT_TOKEN, channels=DEFAULT_BACKEND_CHANNEL, file=b, filename=f"{team_domain}-{friendly_id}")
     return make_response("", 200)
 
 
