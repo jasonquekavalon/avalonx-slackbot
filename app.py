@@ -59,20 +59,10 @@ def msg_validation(req):
 def slack_gcp():
     logger.info("Request received for gcp support...")
     req = request.form.to_dict()
-    query = ds_client.query(kind = 'message')
-    query.add_filter('team_domain', "=", req['team_domain'])
-    count = len(list(query.fetch())) + 1
 
-    req["status"] = "Pending"
-    friendly_id = f"{req['team_domain']}-{count}"   
-    req['friendly_id'] = friendly_id
-    # send channel a response
-    if (msg_validation(req)):
-        
+    def process(req, friendly_id=None):
         if "message_id" not in req['text']:
-            
-            message = f"*{req['user_name']}* from workspace *{req['team_domain']}* says: *{req['text']}*."
-
+            message = f"*{req['user_name']}* from workspace *{req['team_domain']}* says: *{req['text']}*. "
             friendly_id = datastore_client.add_item(ds_client, "message", req, friendly_id)
             # Add to salesforce
             create_sf_case()
