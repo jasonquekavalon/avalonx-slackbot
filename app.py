@@ -230,6 +230,7 @@ def create_sf_case(friendly_id, team_id, contact_id, message):
         # "ContactId": contact_id,
         "Subject": message,
         # "Status": "Pending"
+        "SuppliedName": "Alfred GCP Support"
     }
 # comment
     header = {
