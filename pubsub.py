@@ -14,6 +14,4 @@ def callback(message):
 subscriber.subscribe(subscription_path, callback=callback)
 
 print("Listening for messages on {}".format(subscription_path))
-while True:
-    time.sleep(60)
 
