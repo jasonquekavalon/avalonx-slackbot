@@ -23,6 +23,7 @@ app = Flask(__name__)
 
 DEFAULT_BACKEND_CHANNEL = "alfred-dev-internal"
 
+bucket_name = "alfred-uploaded-images"
 
 # Create the datastore client
 ds_client = datastore_client.create_client("alfred-dev-1")
