@@ -54,24 +54,22 @@ def verify_slack_token(func):
 
 
 def pubsub():
-    # user = req['user_name']
-    # team = req['team_domain']
-    # friendly_id = req['text'].split()[0]
-
     subscriber = pubsub_v1.SubscriberClient()
     subscription_path = subscriber.subscription_path(project_id, subscription_name)
 
     def callback(message):
-        # print("Message recieved: {}".format(message))
-        team = message.attributes.get('objectId').split('/')[1]
-        friendly_id = message.attributes.get('objectId').split('/')[2]
+        if message.attributes.get('eventType') == "OBJECT_FINALIZE":
+            team = message.attributes.get('objectId').split('/')[1]
+            friendly_id = message.attributes.get('objectId').split('/')[2]
+            slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=f"*{team}* has submitted a screenshot with Message ID: *{friendly_id}*")
 
-        slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=f"*{team}* has submitted a screenshot with Message ID: *{friendly_id}*")
         message.ack()
-
     future = subscriber.subscribe(subscription_path, callback=callback)
-    # print("Listening for messages on {}".format(subscription_path))
-    future.result()
+        # time.sleep(60)
+    try:
+        future.result()
+    except Exception as e:
+        logger.error('Listening for messages on {} threw an Exception: {}.'.format(subscription_name, e))
 
 
 @app.route("/slack/validation", methods=["POST"])
