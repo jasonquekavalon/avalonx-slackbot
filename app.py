@@ -56,7 +56,7 @@ def msg_validation(req):
 def slack_gcp():
     logger.info("Request received for gcp support...")
     req = request.form.to_dict()
-# test
+
     def process(req, friendly_id=None):
         if "message_id" not in req['text']:
             message = f"*{req['user_name']}* from workspace *{req['team_domain']}* says: *{req['text']}*. "
