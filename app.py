@@ -10,7 +10,9 @@ import datastore_client
 import config as cfg
 from log import log
 import logging
-from google.cloud import storage
+from google.cloud import pubsub_v1, storage
+import time
+from threading import Thread
 
 log.setup_logger()
 logger = log.get_logger()
@@ -25,8 +27,13 @@ DEFAULT_BACKEND_CHANNEL = "alfred-dev-internal"
 
 bucket_name = "alfred-uploaded-images"
 
+project_id = "alfred-dev-1"
+subscription_name = "file-upload"
+
+
 # Create the datastore client
 ds_client = datastore_client.create_client("alfred-dev-1")
+
 
 # TODO: Add checks for all responses from slack api calls
 
@@ -44,6 +51,27 @@ def verify_slack_token(func):
         else:
             return func()
     return wrapper
+
+
+def pubsub():
+    # user = req['user_name']
+    # team = req['team_domain']
+    # friendly_id = req['text'].split()[0]
+
+    subscriber = pubsub_v1.SubscriberClient()
+    subscription_path = subscriber.subscription_path(project_id, subscription_name)
+
+    def callback(message):
+        # print("Message recieved: {}".format(message))
+        team = message.attributes.get('objectId').split('/')[1]
+        friendly_id = message.attributes.get('objectId').split('/')[2]
+
+        slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=f"*{team}* has submitted a screenshot with Message ID: *{friendly_id}*")
+        message.ack()
+
+    future = subscriber.subscribe(subscription_path, callback=callback)
+    # print("Listening for messages on {}".format(subscription_path))
+    future.result()
 
 
 @app.route("/slack/validation", methods=["POST"])
@@ -82,7 +110,7 @@ def slack_gcp():
 
             internal_message = f"*{req['user_name']}* from workspace *{req['team_domain']}* has a question in {req['channel_name']}: *{following_message}*. To respond, type `/avalonx-respond {friendly_id} <response>`."
             slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=internal_message)
-            
+
     if msg_validation(req):
         query = ds_client.query(kind='message')
         query.add_filter('team_domain', "=", req['team_domain'])
@@ -93,7 +121,7 @@ def slack_gcp():
         thread = Thread(target=process, kwargs={'req': req, 'friendly_id': friendly_id})  # Start background thread to process
         thread.start()
 
-        return make_response(f"Your Message ID is *{friendly_id}*. To check the status of your message, type `/avalonx-message-status {friendly_id}`. To upload a screenshot, type `/avalonx-screenshot {friendly_id}`.", 200)   
+        return make_response(f"Your Message ID is *{friendly_id}*. To check the status of your message, type `/avalonx-message-status {friendly_id}`. To upload a screenshot, type `/avalonx-screenshot {friendly_id}`.", 200)
     else:
         return make_response("You're missing the required properties", 400)
 
@@ -172,10 +200,11 @@ def slack_screenshot():
     logger.info("Request received for screenshot...")
     req = request.form.to_dict()
     friendly_id = req['text']
-    team_id = req["team_domain"]    
+    team_id = req["team_domain"]
     website = f"https://alfred-dev-1.appspot.com/?friendly_id={friendly_id}&team_id={team_id}"
     slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=f"*{req['user_name']}* from workspace *{req['team_domain']}* is submitting screenshots under Message ID: *{friendly_id}*")
     return make_response(f"Please upload your screenshots at: {website}. Thank you!", 200)
+
 
 @app.route("/getscreenshot", methods=["POST"])
 def slack_getscreenshot():
@@ -188,7 +217,7 @@ def slack_getscreenshot():
     prefix = team_domain + "/" + friendly_id
 
     for blob in list_blobs_with_prefix(bucket_name, prefix=prefix):
-        file = blob.download_to_filename("hello.png") #(name)
+        file = blob.download_to_filename("hello.png")  # (name)
 
         with open("hello.png", "rb") as image:
             f = image.read()
@@ -200,12 +229,14 @@ def slack_getscreenshot():
 
 def list_blobs_with_prefix(bucket_name, prefix):
     """Lists all the blobs in the bucket that begin with the prefix.
+
     This can be used to list all blobs in a "folder", e.g. "public/".
     """
     storage_client = storage.Client()
     blobs = storage_client.list_blobs(bucket_name, prefix=prefix)
     for blob in blobs:
         yield blob
+
 
 @app.route("/hello", methods=["POST"])
 # @verify_slack_token
@@ -240,4 +271,6 @@ def create_sf_case(message, team_id, friendly_id):
 
 # Start the Flask server
 if __name__ == "__main__":
+    thread = Thread(target=pubsub)
+    thread.start()
     app.run(host="0.0.0.0", port=8000)
