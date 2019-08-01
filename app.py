@@ -56,7 +56,7 @@ def msg_validation(req):
 def slack_gcp():
     logger.info("Request received for gcp support...")
     req = request.form.to_dict()
-# test
+
     def process(req, friendly_id=None):
         if "message_id" not in req['text']:
             message = f"*{req['user_name']}* from workspace *{req['team_domain']}* says: *{req['text']}*. "
@@ -172,9 +172,7 @@ def slack_screenshot():
     logger.info("Request received for screenshot...")
     req = request.form.to_dict()
     friendly_id = req['text']
-    team_id = req["team_domain"]
-    # site = f"http://127.0.0.1:5000/upload-image/?message_id={friendly_id}&team_name={team_id}"
-    
+    team_id = req["team_domain"]    
     website = f"https://alfred-dev-1.appspot.com/?friendly_id={friendly_id}&team_id={team_id}"
     slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=f"*{req['user_name']}* from workspace *{req['team_domain']}* is submitting screenshots under Message ID: *{friendly_id}*")
     return make_response(f"Please upload your screenshots at: {website}. Thank you!", 200)
