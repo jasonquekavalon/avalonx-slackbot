@@ -7,6 +7,8 @@ import logging
 from uuid import UUID
 from google.cloud import storage, pubsub_v1
 import time
+from threading import Thread
+
 
 logger = logging.getLogger()
 slack_client = WebClient(cfg.SLACK_BOT_TOKEN)
@@ -58,6 +60,8 @@ def pubsub(req):
     # print("Listening for messages on {}".format(subscription_path))
     future.result()
 
+    thread = Thread(target=callback, kwargs={'req': req, 'friendly_id': friendly_id})
+    thread.start()
 
 @app.route("/slack/validation", methods=["POST"])
 def msg_validation(req):
