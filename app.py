@@ -5,7 +5,7 @@ import datastore_client
 import uuid
 import logging
 from uuid import UUID
-from google.cloud import storage, pubsub_v1
+from google.cloud import pubsub_v1
 import time
 from threading import Thread
 
@@ -43,25 +43,27 @@ ds_client = datastore_client.create_client("alfred-dev-1")
 #             return func()
 #     return wrapper
 
-def pubsub(req):
-    user = req['user_name']
-    team = req['team_domain']
-    friendly_id = req['text'].split()[0]
+def pubsub():
+    # user = req['user_name']
+    # team = req['team_domain']
+    # friendly_id = req['text'].split()[0]
 
     subscriber = pubsub_v1.SubscriberClient()
     subscription_path = subscriber.subscription_path(project_id, subscription_name)
 
     def callback(message):
         # print("Message recieved: {}".format(message))
-        slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=f"*{user}* from workspace *{team}* has submitted a screenshot with Message ID: *{friendly_id}*")
+        team = message.attributes.get('objectId').split('/')[1]
+        friendly_id = message.attributes.get('objectId').split('/')[2]
+
+        slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=f"*{team}* has submitted a screenshot with Message ID: *{friendly_id}*")
         message.ack()
 
     future = subscriber.subscribe(subscription_path, callback=callback)
     # print("Listening for messages on {}".format(subscription_path))
     future.result()
 
-    thread = Thread(target=callback, kwargs={'req': req, 'friendly_id': friendly_id})
-    thread.start()
+
 
 @app.route("/slack/validation", methods=["POST"])
 def msg_validation(req):
@@ -231,4 +233,7 @@ def slash_hello():
 
 # Start the Flask server
 if __name__ == "__main__":
+    thread = Thread(target=pubsub)
+    thread.start()
     app.run(host="0.0.0.0", port=8000)
+    
