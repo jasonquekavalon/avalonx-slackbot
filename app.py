@@ -163,9 +163,9 @@ def slack_status():
 # @verify_slack_token
 def slack_resolve_message():
     logger.info("Request received for resolve_message...")
+    req = request.form.to_dict()
 
     def process(req):
-        req = request.form.to_dict()
         friendly_id = req['text'].split()[0]
         updated_status = "Completed"
         datastore_client.update_status(ds_client, "message", updated_status, friendly_id)
