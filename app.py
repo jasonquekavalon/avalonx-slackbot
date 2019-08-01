@@ -107,8 +107,6 @@ def slack_gcp():
 def slack_response():
     logger.info("Request received for response...")
     req = request.form.to_dict()
-    thread = Thread(target=process, kwargs={'req': req})  # Create background thread
-    thread.start()
 
     def process(req):
         friendly_id = req['text'].split()[0]  # Should be a uuid if it was sent in as the first word
@@ -135,7 +133,9 @@ def slack_response():
         datastore_client.update_response(ds_client, "message", stored_responses, friendly_id)
 
         slack_client.chat_postMessage(channel=channel_name, text=response)
-
+    
+    thread = Thread(target=process, kwargs={'req': req})  # Create background thread
+    thread.start()
     return make_response("Response has been sent!", 200)
 
 
@@ -163,8 +163,6 @@ def slack_status():
 # @verify_slack_token
 def slack_resolve_message():
     logger.info("Request received for resolve_message...")
-    thread = Thread(target=process, kwargs={'req': req})
-    thread.start()
 
     def process(req):
         req = request.form.to_dict()
@@ -173,6 +171,9 @@ def slack_resolve_message():
         datastore_client.update_status(ds_client, "message", updated_status, friendly_id)
 
         slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=f"*{req['user_name']}* from workspace *{req['team_domain']}* has resolved their ticket with Message ID *{friendly_id}*")
+    
+    thread = Thread(target=process, kwargs={'req': req})
+    thread.start()
     return make_response("Your issue has been resolved. Thank you for using the Alfred slack bot. We hope you have a nice day!", 200)
 
 
@@ -191,8 +192,6 @@ def slack_screenshot():
 @app.route("/getscreenshot", methods=["POST"])
 def slack_getscreenshot():
     req = request.form.to_dict()
-    thread = Thread(target=process, kwargs={'req': req})
-    thread.start()
 
     def process(req):
         friendly_id = req['text'].split()[0]
@@ -210,7 +209,9 @@ def slack_getscreenshot():
                 b = bytearray(f)
             # count += count
                 slack_client.files_upload(token=cfg.SLACK_BOT_TOKEN, channels=DEFAULT_BACKEND_CHANNEL, file=b, filename="hello2")
-
+    
+    thread = Thread(target=process, kwargs={'req': req})
+    thread.start()
     return make_response("", 200)
 
 
