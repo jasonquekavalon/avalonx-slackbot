@@ -201,14 +201,13 @@ def slack_getscreenshot():
         count = 1
         prefix = team_domain + "/" + friendly_id
 
-        for blob in list_blobs_with_prefix(bucket_name, prefix=prefix):
+        for index, blob in list_blobs_with_prefix(bucket_name, prefix=prefix):
             file = blob.download_to_filename("hello.png")  # (name)
 
             with open("hello.png", "rb") as image:
                 f = image.read()
                 b = bytearray(f)
-            # count += count
-                slack_client.files_upload(token=cfg.SLACK_BOT_TOKEN, channels=DEFAULT_BACKEND_CHANNEL, file=b, filename="hello2")
+                slack_client.files_upload(token=cfg.SLACK_BOT_TOKEN, channels=DEFAULT_BACKEND_CHANNEL, file=b, filename="{friendly_id}_{index}.png")
     
     thread = Thread(target=process, kwargs={'req': req})
     thread.start()
@@ -222,8 +221,8 @@ def list_blobs_with_prefix(bucket_name, prefix):
     """
     storage_client = storage.Client()
     blobs = storage_client.list_blobs(bucket_name, prefix=prefix)
-    for blob in blobs:
-        yield blob
+    for index, blob in enumerate(blobs):
+        yield index, blob
 
 
 @app.route("/hello", methods=["POST"])
