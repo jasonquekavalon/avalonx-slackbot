@@ -227,11 +227,7 @@ def create_sf_case(message, team_id, friendly_id):
         "Origin": "Web",
         "Reason": friendly_id,
         "SuppliedCompany": team_id,
-
-        # "AccountId": friendly_id, 
-        # "ParentId": contact_id,
         "Subject": message,
-        # "Status": "Pending"
         "SuppliedName": "Alfred GCP Support"
     }
 # comment
