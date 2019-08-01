@@ -8,7 +8,9 @@ from slack import WebClient
 
 from auth import get_token
 import datastore_client
+from google.cloud import storage
 import config as cfg
+import logging
 from log import log
 
 logger = log.get_logger()
@@ -21,26 +23,30 @@ app = Flask(__name__)
 
 DEFAULT_BACKEND_CHANNEL = "alfred-dev-internal"
 
+bucket_name = "alfred-uploaded-images"
+
+
 
 # Create the datastore client
 ds_client = datastore_client.create_client("alfred-dev-1")
 
+
 # TODO: Add checks for all responses from slack api calls
 
+# def verify_slack_token(func):
+#     """This should be used for ALL requests in the future"""
+#     def wrapper():
+#         req = request.form.to_dict()
+#         print(req)
+#         request_token = req['token']
+#         print(f"req token: {request_token}")
+#         if SLACK_VERIFICATION_TOKEN != request_token:
+#             # print("Error: invalid verification token!")
+#             return make_response("Request contains invalid Slack verification token", 403)
+#         else:
+#             return func()
+#     return wrapper
 
-def verify_slack_token(func):
-    """This should be used for ALL requests in the future"""
-    def wrapper():
-        req = request.form.to_dict()
-        print(req)
-        request_token = req['token']
-        print(f"req token: {request_token}")
-        if SLACK_VERIFICATION_TOKEN != request_token:
-            # print("Error: invalid verification token!")
-            return make_response("Request contains invalid Slack verification token", 403)
-        else:
-            return func()
-    return wrapper
 
 
 @app.route("/slack/validation", methods=["POST"])
@@ -171,7 +177,39 @@ def slack_screenshot():
     
     website = f"https://alfred-dev-1.appspot.com/?friendly_id={friendly_id}&team_id={team_id}"
     slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=f"*{req['user_name']}* from workspace *{req['team_domain']}* is submitting screenshots under Message ID: *{friendly_id}*")
-    return make_response(f"Please upload your screenshots at: {website}. Thank you!", 200)
+    return make_response(f"Please upload your screenshots at: {site}. Thank you!", 200)
+#     return req['token']
+
+@app.route("/getscreenshot", methods=["POST"])
+def slack_getscreenshot():
+    req = request.form.to_dict()
+    friendly_id = req['text'].split()[0]
+    team_domain = req['team_domain']
+
+    storage_client = storage.Client()
+    count = 1
+    prefix = team_domain + "/" + friendly_id
+
+    for blob in list_blobs_with_prefix(bucket_name, prefix=prefix):
+        file = blob.download_to_filename("hello.png") #(name)
+
+        with open("hello.png", "rb") as image:
+            f = image.read()
+            b = bytearray(f)
+        # count += count
+            slack_client.files_upload(token=cfg.SLACK_BOT_TOKEN, channels=DEFAULT_BACKEND_CHANNEL, file=b, filename=f"{team_domain}-{friendly_id}")
+    return make_response("", 200)
+
+
+def list_blobs_with_prefix(bucket_name, prefix):
+    """Lists all the blobs in the bucket that begin with the prefix.
+
+    This can be used to list all blobs in a "folder", e.g. "public/".
+    """
+    storage_client = storage.Client()
+    blobs = storage_client.list_blobs(bucket_name, prefix=prefix)
+    for blob in blobs:
+        yield blob
 
 @app.route("/hello", methods=["POST"])
 # @verify_slack_token
@@ -179,7 +217,6 @@ def slash_hello():
     # slack_client.chat_postMessage(channel="alfred-dev-internal", text="test test")
     print("hello")
     return make_response("", 200)
-
 
 def create_sf_case(body=None):
     # You should unpack the fields we want to save into Salesforce here (maybe all fields for now) into their appropriate SF equivalents
