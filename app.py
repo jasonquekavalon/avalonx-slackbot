@@ -62,7 +62,7 @@ def slack_gcp():
             message = f"*{req['user_name']}* from workspace *{req['team_domain']}* says: *{req['text']}*. "
             friendly_id = datastore_client.add_item(ds_client, "message", req, friendly_id)
             # Add to salesforce
-            create_sf_case(friendly_id, req['team_domain'], req['user_name'], req['text'])
+            create_sf_case(req['text'])
 
             internal_message = f"*{req['user_name']}* from workspace *{req['team_domain']}* has a question in {req['channel_name']}: *{req['text']}*. To respond, type `/avalonx-respond {friendly_id} <response>`."
             slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=internal_message)
@@ -217,7 +217,7 @@ def slash_hello():
     return make_response("", 200)
 
 
-def create_sf_case(friendly_id, team_id, contact_id, message):
+def create_sf_case(message):
     # You should unpack the fields we want to save into Salesforce here (maybe all fields for now) into their appropriate SF equivalents
     token = get_token()
 
@@ -227,7 +227,7 @@ def create_sf_case(friendly_id, team_id, contact_id, message):
         "Origin": "Web",
         "Reason": "Bug Report",
         # "AccountId": friendly_id, 
-        "ParentId": contact_id,
+        # "ParentId": contact_id,
         "Subject": message,
         # "Status": "Pending"
         "SuppliedName": "Alfred GCP Support"
