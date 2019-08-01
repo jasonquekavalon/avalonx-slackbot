@@ -1,18 +1,18 @@
 import uuid
 from uuid import UUID
 from threading import Thread
-import config as cfg
+import time
+
 from flask import Flask, request, make_response, Response
 import requests
 from slack import WebClient
-from auth import get_token
-import datastore_client
+from google.cloud import pubsub_v1, storage
+
+from ps_callback import pubsub
 import config as cfg
 from log import log
-import logging
-from google.cloud import pubsub_v1, storage
-import time
-from threading import Thread
+import datastore_client
+from auth import get_token
 
 log.setup_logger()
 logger = log.get_logger()
@@ -24,20 +24,15 @@ SF_CASE_URL = "https://avalonsolutions--PreProd.cs109.my.salesforce.com/services
 app = Flask(__name__)
 
 DEFAULT_BACKEND_CHANNEL = "alfred-dev-internal"
-
 bucket_name = "alfred-uploaded-images"
 
-project_id = "alfred-dev-1"
-subscription_name = "file-upload"
-
+thread = Thread(target=pubsub, kwargs={"slack_client": slack_client, "default_backend_channel": DEFAULT_BACKEND_CHANNEL})
+thread.start()
 
 # Create the datastore client
 ds_client = datastore_client.create_client("alfred-dev-1")
 
-
 # TODO: Add checks for all responses from slack api calls
-
-
 def verify_slack_token(func):
     """This should be used for ALL requests in the future"""
     def wrapper():
@@ -51,25 +46,6 @@ def verify_slack_token(func):
         else:
             return func()
     return wrapper
-
-
-def pubsub():
-    subscriber = pubsub_v1.SubscriberClient()
-    subscription_path = subscriber.subscription_path(project_id, subscription_name)
-
-    def callback(message):
-        if message.attributes.get('eventType') == "OBJECT_FINALIZE":
-            team = message.attributes.get('objectId').split('/')[1]
-            friendly_id = message.attributes.get('objectId').split('/')[2]
-            slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=f"*{team}* has submitted a screenshot with Message ID: *{friendly_id}*")
-
-        message.ack()
-    future = subscriber.subscribe(subscription_path, callback=callback)
-        # time.sleep(60)
-    try:
-        future.result()
-    except Exception as e:
-        logger.error('Listening for messages on {} threw an Exception: {}.'.format(subscription_name, e))
 
 
 @app.route("/slack/validation", methods=["POST"])
@@ -269,6 +245,4 @@ def create_sf_case(message, team_id, friendly_id):
 
 # Start the Flask server
 if __name__ == "__main__":
-    thread = Thread(target=pubsub)
-    thread.start()
     app.run(host="0.0.0.0", port=8000)
