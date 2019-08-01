@@ -3,3 +3,4 @@ flask
 gunicorn
 google-cloud-datastore
 google-cloud-pubsub
+google-cloud-storage
