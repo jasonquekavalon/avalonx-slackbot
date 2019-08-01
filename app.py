@@ -207,7 +207,7 @@ def slack_getscreenshot():
             with open("hello.png", "rb") as image:
                 f = image.read()
                 b = bytearray(f)
-                slack_client.files_upload(token=cfg.SLACK_BOT_TOKEN, channels=DEFAULT_BACKEND_CHANNEL, file=b, filename="{friendly_id}_{index}.png")
+                slack_client.files_upload(token=cfg.SLACK_BOT_TOKEN, channels=DEFAULT_BACKEND_CHANNEL, file=b, filename=f"{friendly_id}_{index}.png")
     
     thread = Thread(target=process, kwargs={'req': req})
     thread.start()
