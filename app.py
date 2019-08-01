@@ -5,7 +5,8 @@ import datastore_client
 import uuid
 import logging
 from uuid import UUID
-from google.cloud import storage
+from google.cloud import storage, pubsub_v1
+import time
 
 logger = logging.getLogger()
 slack_client = WebClient(cfg.SLACK_BOT_TOKEN)
@@ -16,6 +17,8 @@ DEFAULT_BACKEND_CHANNEL = "alfred-dev-internal"
 
 bucket_name = "alfred-uploaded-images"
 
+project_id = "alfred-dev-1"
+subscription_name = "file-upload"
 
 
 # Create the datastore client
@@ -37,6 +40,21 @@ ds_client = datastore_client.create_client("alfred-dev-1")
 #         else:
 #             return func()
 #     return wrapper
+
+def pubsub(req):
+
+    subscriber = pubsub_v1.SubscriberClient()
+    subscription_path = subscriber.subscription_path(project_id, subscription_name)
+
+    def callback(message):
+        # print("Message recieved: {}".format(message))
+        slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=f"*{req['user_name']}* from workspace *{req['team_domain']}* is submitting screenshots under Message ID: *{friendly_id}*")
+        message.ack()
+
+    future = subscriber.subscribe(subscription_path, callback=callback)
+    # print("Listening for messages on {}".format(subscription_path))
+    future.result()
+
 
 @app.route("/slack/validation", methods=["POST"])
 def msg_validation(req):
@@ -161,7 +179,6 @@ def slack_screenshot():
     # req["screenshot"] = "yes"
     site = "http://127.0.0.1:5000/upload-image"
 
-    slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=f"*{req['user_name']}* from workspace *{req['team_domain']}* is submitting screenshots under Message ID: *{friendly_id}*")
     return make_response(f"Please upload your screenshots at: {site}. Thank you!", 200)
 #     return req['token']
 
