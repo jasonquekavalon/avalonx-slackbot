@@ -33,6 +33,8 @@ thread.start()
 ds_client = datastore_client.create_client("alfred-dev-1")
 
 # TODO: Add checks for all responses from slack api calls
+
+
 def verify_slack_token(func):
     """This should be used for ALL requests in the future"""
     def wrapper():
@@ -105,33 +107,36 @@ def slack_gcp():
 def slack_response():
     logger.info("Request received for response...")
     req = request.form.to_dict()
+    thread = Thread(target=process, kwargs={'req': req})  # Create background thread
+    thread.start()
 
-    friendly_id = req['text'].split()[0]  # Should be a uuid if it was sent in as the first word
-    # Ensure that message_id is a real uuid.
+    def process(req):
+        friendly_id = req['text'].split()[0]  # Should be a uuid if it was sent in as the first word
+        # Ensure that message_id is a real uuid.
 
-    # try:
-    #     _ = UUID(str(message_id), version=4)
-    # except ValueError:
-    #     # If it's a value error, then the string
-    #     # is not a valid hex code for a UUID.
-    #     return make_response("You're missing the required properties. Response should be in this format `/avalonx-respond <message id> <response>`. ", 400)
+        # try:
+        #     _ = UUID(str(message_id), version=4)
+        # except ValueError:
+        #     # If it's a value error, then the string
+        #     # is not a valid hex code for a UUID.
+        #     return make_response("You're missing the required properties. Response should be in this format `/avalonx-respond <message id> <response>`. ", 400)
 
-    response_to_message_split = req["text"].split(maxsplit=1)[1:]
-    response_to_message = response_to_message_split[0]
-    channel_name = datastore_client.get_channelname(ds_client, "message", friendly_id)
-    response = f"*{req['user_name']}* from workspace *{req['team_domain']}* has responded to Message ID *{friendly_id}* in {req['channel_name']}: *{response_to_message}*. To respond, type `/avalonx message_id {friendly_id} <INPUT RESPONSE HERE>`. To resolve this conversation, type `/avalonx-resolve {friendly_id}`."
-    stored_responses = datastore_client.get_saved_responses(ds_client, "message", friendly_id)
-    if stored_responses == None:
-        stored_responses = []
+        response_to_message_split = req["text"].split(maxsplit=1)[1:]
+        response_to_message = response_to_message_split[0]
+        channel_name = datastore_client.get_channelname(ds_client, "message", friendly_id)
+        response = f"*{req['user_name']}* from workspace *{req['team_domain']}* has responded to Message ID *{friendly_id}* in {req['channel_name']}: *{response_to_message}*. To respond, type `/avalonx message_id {friendly_id} <INPUT RESPONSE HERE>`. To resolve this conversation, type `/avalonx-resolve {friendly_id}`."
+        stored_responses = datastore_client.get_saved_responses(ds_client, "message", friendly_id)
+        if stored_responses == None:
+            stored_responses = []
 
-    elif isinstance(stored_responses, str):
-        stored_responses = [stored_responses]
-    stored_responses.append(response_to_message)
-    datastore_client.update_response(ds_client, "message", stored_responses, friendly_id)
+        elif isinstance(stored_responses, str):
+            stored_responses = [stored_responses]
+        stored_responses.append(response_to_message)
+        datastore_client.update_response(ds_client, "message", stored_responses, friendly_id)
 
-    slack_client.chat_postMessage(channel=channel_name, text=response)
+        slack_client.chat_postMessage(channel=channel_name, text=response)
+
     return make_response("Response has been sent!", 200)
-#     return req['token']
 
 
 @app.route("/get/message", methods=["GET"])
@@ -158,14 +163,17 @@ def slack_status():
 # @verify_slack_token
 def slack_resolve_message():
     logger.info("Request received for resolve_message...")
-    req = request.form.to_dict()
-    friendly_id = req['text'].split()[0]
-    updated_status = "Completed"
-    datastore_client.update_status(ds_client, "message", updated_status, friendly_id)
+    thread = Thread(target=process, kwargs={'req': req})
+    thread.start()
 
-    slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=f"*{req['user_name']}* from workspace *{req['team_domain']}* has resolved their ticket with Message ID *{friendly_id}*")
+    def process(req):
+        req = request.form.to_dict()
+        friendly_id = req['text'].split()[0]
+        updated_status = "Completed"
+        datastore_client.update_status(ds_client, "message", updated_status, friendly_id)
+
+        slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=f"*{req['user_name']}* from workspace *{req['team_domain']}* has resolved their ticket with Message ID *{friendly_id}*")
     return make_response("Your issue has been resolved. Thank you for using the Alfred slack bot. We hope you have a nice day!", 200)
-#     return req['token']
 
 
 @app.route("/screenshot", methods=["POST"])
@@ -183,21 +191,26 @@ def slack_screenshot():
 @app.route("/getscreenshot", methods=["POST"])
 def slack_getscreenshot():
     req = request.form.to_dict()
-    friendly_id = req['text'].split()[0]
-    team_domain = req['team_domain']
+    thread = Thread(target=process, kwargs={'req': req})
+    thread.start()
 
-    storage_client = storage.Client()
-    count = 1
-    prefix = team_domain + "/" + friendly_id
+    def process(req):
+        friendly_id = req['text'].split()[0]
+        team_domain = req['team_domain']
 
-    for blob in list_blobs_with_prefix(bucket_name, prefix=prefix):
-        file = blob.download_to_filename("hello.png")  # (name)
+        storage_client = storage.Client()
+        count = 1
+        prefix = team_domain + "/" + friendly_id
 
-        with open("hello.png", "rb") as image:
-            f = image.read()
-            b = bytearray(f)
-        # count += count
-            slack_client.files_upload(token=cfg.SLACK_BOT_TOKEN, channels=DEFAULT_BACKEND_CHANNEL, file=b, filename="hello2")
+        for blob in list_blobs_with_prefix(bucket_name, prefix=prefix):
+            file = blob.download_to_filename("hello.png")  # (name)
+
+            with open("hello.png", "rb") as image:
+                f = image.read()
+                b = bytearray(f)
+            # count += count
+                slack_client.files_upload(token=cfg.SLACK_BOT_TOKEN, channels=DEFAULT_BACKEND_CHANNEL, file=b, filename="hello2")
+
     return make_response("", 200)
 
 
