@@ -2,3 +2,4 @@ slackclient==2.0.0
 flask
 gunicorn
 google-cloud-datastore
+google-cloud-pubsub
