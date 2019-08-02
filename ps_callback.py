@@ -13,8 +13,9 @@ def pubsub(slack_client, default_backend_channel):
 
     def callback(message):
         if message.attributes.get('eventType') == "OBJECT_FINALIZE":
-            team = message.attributes.get('objectId').split('/')[1]
-            friendly_id = message.attributes.get('objectId').split('/')[3]
+            print(message)
+            team = message.attributes.get('objectId').split('/')[0]
+            friendly_id = message.attributes.get('objectId').split('/')[1]
             slack_client.chat_postMessage(channel=default_backend_channel, text=f"*{team}* has submitted a screenshot with Message ID: *{friendly_id}*")
 
         message.ack()
