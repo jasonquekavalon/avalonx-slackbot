@@ -213,6 +213,11 @@ def slack_getscreenshot():
     thread.start()
     return make_response("", 200)
 
+@app.route("/buttons", methods=["POST"])
+def slack_buttons():
+    req = request.form.to_dict()
+    print(req)
+
 
 def list_blobs_with_prefix(bucket_name, prefix):
     """Lists all the blobs in the bucket that begin with the prefix.
