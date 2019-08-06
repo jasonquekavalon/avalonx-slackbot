@@ -163,7 +163,6 @@ def slack_get():
 def slack_status():
     logger.info("Request received for status endpoint...")
     req = request.form.to_dict()
-    logger.error(req)
     friendly_id = req['text']
     status = datastore_client.get_status(ds_client, "message", friendly_id)
 
