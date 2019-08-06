@@ -1,0 +1,59 @@
+version: "3"
+
+services:
+  server:
+    image: alfred-gcp-support:latest
+    build: .
+    depends_on:
+      - datastore
+      - pubsub
+      - slack-api
+    ports:
+      - "8000:8000"
+    environment:
+      # LOG_LEVEL: "INFO"
+      PROJECT_ID: alfred-dev-emulator
+      BUCKET_NAME: alfred-dev-emulator
+      DATASTORE_EMULATOR_HOST: datastore:8432
+      DATASTORE_PROJECT_ID: alfred-dev-emulator
+      PUBSUB_EMULATOR_HOST: pubsub:8433
+      SLACK_API_URL: "http://slack-api:1080"
+      SF_API_URL: "http://sf-api:1081"
+  datastore:
+    image:  singularities/datastore-emulator #eu.gcr.io/alfred-dev-1/singularities/datastore-emulator
+    ports:
+      - "8432:8432"
+    expose:
+      - "8432"
+    entrypoint:
+      - ./start-datastore
+      - --consistency=1
+    environment:
+      DATASTORE_PROJECT_ID: alfred-dev-emulator
+      DATASTORE_LISTEN_ADDRESS: datastore:8432
+  pubsub:
+    image: singularities/pubsub-emulator #eu.gcr.io/alfred-dev-1/singularities/pubsub-emulator
+    ports:
+      - "8433:8433"
+    expose:
+      - "8433"
+    environment:
+      PUBSUB_PROJECT_ID: alfred-dev-emulator
+      PUBSUB_LISTEN_ADDRESS: pubsub:8433
+  slack-api:
+    image: jamesdbloom/mockserver
+    ports:
+      - "1080:1080"
+    expose:
+      - "1080"
+  # sf-api:
+  #   image: jamesdbloom/mockserver
+  #   ports:
+  #     - "1081:1080"
+  #   expose:
+  #     - "1081"
+
+networks:
+  default:
+    external:
+      name: cloudbuild #see https://cloud.google.com/cloud-build/docs/overview

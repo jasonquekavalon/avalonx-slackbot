@@ -1,15 +1,25 @@
+import os
+
 from google.cloud import pubsub_v1
+from google.api_core import exceptions
+
 from log import log
 
 logger = log.get_logger()
 
 
 def pubsub(slack_client, default_backend_channel):
-    project_id = "alfred-dev-1"
+    project_id = os.getenv("PROJECT_ID") or "alfred-dev-1"
     subscription_name = "file-upload"
 
     subscriber = pubsub_v1.SubscriberClient()
     subscription_path = subscriber.subscription_path(project_id, subscription_name)
+    topic_path = subscriber.topic_path(project_id, 'file-upload')
+
+    try:
+        subscriber.create_subscription(subscription_path, topic_path)
+    except exceptions.AlreadyExists as e:
+        logger.info("Pub/Sub subscription already exists in project {}.".format(project_id))
 
     def callback(message):
         if message.attributes.get('eventType') == "OBJECT_FINALIZE":

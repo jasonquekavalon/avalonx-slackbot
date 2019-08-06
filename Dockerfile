@@ -9,7 +9,7 @@ RUN pip install -r /tmp/requirements.txt
 
 COPY . /app
 
-## Run flask
+RUN ["make", "lint"]
 
 ENTRYPOINT ["gunicorn", "--bind=0.0.0.0:8000", "app:app"]
 

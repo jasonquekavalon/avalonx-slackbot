@@ -2,17 +2,20 @@ from google.cloud import datastore
 import datetime
 import uuid
 
+from log import log
+
+logger = log.get_logger()
 
 # project_id="alfred-dev-1"
-def create_client(project_id):
+def create_client(project_id, http=None):
     """
     Creates the one and only Datastore client (there should only be one of these in use)
     :param project_id: your GCP project name
     :return:
     """
+    if http:
+        return datastore.Client(project_id, _http=http)
     return datastore.Client(project_id)
-
-
 
 
 def add_item(client, kind, data, friendly_id):
@@ -40,7 +43,6 @@ def get_message(client, kind, id):
     return message.get("message")
 
 def get_status(client, kind, id):
-
     key = client.key('message', id)
     status = client.get(key)
     return status.get("status")
