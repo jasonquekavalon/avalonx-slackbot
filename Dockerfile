@@ -11,5 +11,7 @@ COPY . /app
 
 RUN ["make", "lint"]
 
+EXPOSE 8000
+
 ENTRYPOINT ["gunicorn", "--bind=0.0.0.0:8000", "app:app"]
 
