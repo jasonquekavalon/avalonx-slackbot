@@ -138,7 +138,6 @@ def slack_response():
     thread.start()
     return make_response("Response has been sent!", 200)
 
-
 @app.route("/get/message", methods=["GET"])
 def slack_get():
     message_query = request.args.get("message_id")
