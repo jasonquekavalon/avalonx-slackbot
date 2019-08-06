@@ -41,7 +41,7 @@ def verify_slack_token(func):
         req = request.form.to_dict()
         print(req)
         request_token = req['token']
-        print(f"req token: {request_token}")
+        # print(f"req token: {request_token}")
         if SLACK_VERIFICATION_TOKEN != request_token:
             # print("Error: invalid verification token!")
             return make_response("Request contains invalid Slack verification token", 403)
