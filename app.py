@@ -158,6 +158,7 @@ def slack_status():
     return make_response(f"Your status for ticket with ID *{friendly_id}* is *{status}*", 200)
 #     return req['token']
 
+# 
 
 @app.route("/resolve_message", methods=["POST"])
 # @verify_slack_token
