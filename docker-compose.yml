@@ -12,6 +12,7 @@ services:
       - "8000:8000"
     environment:
       # LOG_LEVEL: "INFO"
+      SERVER_HOST: 0.0.0.0
       PROJECT_ID: alfred-dev-emulator
       BUCKET_NAME: alfred-dev-emulator
       DATASTORE_EMULATOR_HOST: datastore:8432

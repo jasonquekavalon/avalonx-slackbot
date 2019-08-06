@@ -24,7 +24,7 @@ class TestSlackBot(unittest.TestCase):
         # topic='file-upload')
         cls.slack_api_url = os.getenv("SLACK_API_URL")
         cls.salesforce_api_url = os.getenv("SF_API_URL")
-        cls.app_url = "http://localhost:8000"
+        cls.app_url = os.getenv("SERVER_HOST")
         cls.headers = {"Content-Type": "application/x-www-form-urlencoded"}
         cls.response = json.dumps({
             "ok": True,
