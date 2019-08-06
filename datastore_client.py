@@ -13,8 +13,6 @@ def create_client(project_id):
     return datastore.Client(project_id)
 
 
-
-
 def add_item(client, kind, data, friendly_id):
 
     # ds_id = str(uuid.uuid4())
@@ -33,74 +31,86 @@ def add_item(client, kind, data, friendly_id):
     client.put(entity)
     return friendly_id
 
-def get_message(client, kind, id):
-    """Get a specific message from Datastore by id"""
+def get_item(client, kind, id, item):
     key = client.key('message', id)
-    message = client.get(key)
-    return message.get("message")
+    return client.get(key).get(item)
 
-def get_status(client, kind, id):
+# def get_message(client, kind, id):
+#     """Get a specific message from Datastore by id"""
+#     key = client.key('message', id)
+#     message = client.get(key)
+#     return message.get("message")
 
-    key = client.key('message', id)
-    status = client.get(key)
-    return status.get("status")
+# def get_status(client, kind, id):
 
-def get_channelname(client, kind, id):
-    key = client.key('message', id)
-    channel_name = client.get(key)
-    return channel_name.get("channel_name")
+#     key = client.key('message', id)
+#     status = client.get(key)
+#     return status.get("status")
 
-def get_saved_messages(client, kind, id):
-    key = client.key('message', id)
-    saved_messages = client.get(key)
-    return saved_messages.get("text")
+# def get_channelname(client, kind, id):
+#     key = client.key('message', id)
+#     channel_name = client.get(key)
+#     return channel_name.get("channel_name")
 
-def get_filename(client, kind, id):
-    key = client.key('message', id)
-    filename = client.get(key)
-    return filename.get('file name')
+# def get_saved_messages(client, kind, id):
+#     key = client.key('message', id)
+#     saved_messages = client.get(key)
+#     return saved_messages.get("text")
+
+# def get_filename(client, kind, id):
+#     key = client.key('message', id)
+#     filename = client.get(key)
+#     return filename.get('file name')
     
-def get_saved_responses(client, kind, id):
-    key = client.key('message', id)
-    saved_responses = client.get(key)
-    return saved_responses.get("response")
+# def get_saved_responses(client, kind, id):
+#     key = client.key('message', id)
+#     saved_responses = client.get(key)
+#     return saved_responses.get("response")
 
-def update_status(client, kind, data, id):
+def update_item(client, kind, data, id, item):
     key = client.key(kind, id)
-    message = client.get(key)
-    for status in message:
-        message[status] = message[status]
-    message["status"] = data
-    client.put(message)
+    entity = client.get(key)
+    entity[item] = data
+    client.put(entity)
+
+
+
+# def update_status(client, kind, data, id):
+#     key = client.key(kind, id)
+#     message = client.get(key)
+#     for status in message:
+#         message[status] = message[status]
+#     message["status"] = data
+#     client.put(message)
    
-    return message["status"]
+#     return message["status"]
 
-def update_message(client, kind, data, id):
-    key = client.key(kind, id)
-    Entity = client.get(key)
-    for message in Entity:
-        Entity[message] = Entity[message]
-    Entity["text"] = data
-    client.put(Entity)
+# def update_message(client, kind, data, id):
+#     key = client.key(kind, id)
+#     Entity = client.get(key)
+#     for message in Entity:
+#         Entity[message] = Entity[message]
+#     Entity["text"] = data
+#     client.put(Entity)
 
-    return Entity["text"]
+#     return Entity["text"]
 
-def update_response(client, kind, data, id):
-    key = client.key(kind, id) 
-    message = client.get(key)
-    for response in message:
-        message[response] = message[response]
-    message["response"] = data
-    client.put(message)
+# def update_response(client, kind, data, id):
+#     key = client.key(kind, id) 
+#     message = client.get(key)
+#     for response in message:
+#         message[response] = message[response]
+#     message["response"] = data
+#     client.put(message)
    
-    return message["response"]
+#     return message["response"]
 
-def update_filename(client, kind, data, id):
-    key = client.key(kind, id)
-    Entity = client.get(key)
-    for message in Entity:
-        Entity[message] = Entity[message]
-    Entity["file name"] = data
-    client.put(Entity)
+# def update_filename(client, kind, data, id):
+#     key = client.key(kind, id)
+#     Entity = client.get(key)
+#     for message in Entity:
+#         Entity[message] = Entity[message]
+#     Entity["file name"] = data
+#     client.put(Entity)
 
-    return Entity["file name"]  
+#     return Entity["file name"]  
