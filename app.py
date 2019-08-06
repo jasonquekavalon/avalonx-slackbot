@@ -39,9 +39,9 @@ def verify_slack_token(func):
     """This should be used for ALL requests in the future"""
     def wrapper():
         req = request.form.to_dict()
-        print(req)
+        # print(req)
         request_token = req['token']
-        print(f"req token: {request_token}")
+        # print(f"req token: {request_token}")
         if SLACK_VERIFICATION_TOKEN != request_token:
             # print("Error: invalid verification token!")
             return make_response("Request contains invalid Slack verification token", 403)
@@ -56,7 +56,7 @@ def msg_validation(req):
 
 
 @app.route("/slack/gcp_support", methods=["POST"])
-# @verify_slack_token
+@verify_slack_token
 def slack_gcp():
     logger.info("Request received for gcp support...")
     req = request.form.to_dict()
@@ -103,7 +103,7 @@ def slack_gcp():
 
 
 @app.route("/response", methods=["POST"])
-# @verify_slack_token
+@verify_slack_token
 def slack_response():
     logger.info("Request received for response...")
     req = request.form.to_dict()
@@ -148,7 +148,7 @@ def slack_get():
 
 
 @app.route("/status", methods=["POST"])
-# @verify_slack_token
+@verify_slack_token
 def slack_status():
     logger.info("Request received for status endpoint...")
     req = request.form.to_dict()
@@ -160,7 +160,7 @@ def slack_status():
 
 
 @app.route("/resolve_message", methods=["POST"])
-# @verify_slack_token
+@verify_slack_token
 def slack_resolve_message():
     logger.info("Request received for resolve_message...")
     req = request.form.to_dict()
@@ -178,7 +178,7 @@ def slack_resolve_message():
 
 
 @app.route("/screenshot", methods=["POST"])
-# @verify_slack_token
+@verify_slack_token
 def slack_screenshot():
     logger.info("Request received for screenshot...")
     req = request.form.to_dict()
@@ -226,7 +226,7 @@ def list_blobs_with_prefix(bucket_name, prefix):
 
 
 @app.route("/hello", methods=["POST"])
-# @verify_slack_token
+@verify_slack_token
 def slash_hello():
     # slack_client.chat_postMessage(channel="alfred-dev-internal", text="test test")
     print("hello")
