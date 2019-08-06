@@ -9,3 +9,4 @@ python-json-logger==0.1.10
 google-cloud-pubsub
 pytest
 flake8
+backoff
