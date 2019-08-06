@@ -216,6 +216,12 @@ def slack_getscreenshot():
 @app.route("/buttons", methods=["POST"])
 def slack_buttons():
     req = request.form.to_dict()
+    '''
+    if callback id == "screenshot-link":
+        slack_screenshot()
+    else:
+        slack_status()
+    '''
     print(req)
 
 
