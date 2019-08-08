@@ -181,12 +181,13 @@ def slack_get():
 @app.route("/status", methods=["POST"])
 # @verify_slack_token
 def slack_status():
-    logger.info("Request received for status endpoint...")
-    req = request.form.to_dict()
-    friendly_id = req['text']
-    status = datastore_client.get_status(ds_client, "message", friendly_id)
+    # logger.info("Request received for status endpoint...")
+    # req = request.form.to_dict()
+    # friendly_id = req['text']
+    # status = datastore_client.get_status(ds_client, "message", friendly_id)
 
-    return make_response(f"Your status for ticket with ID *{friendly_id}* is *{status}*", 200)
+    # return make_response(f"Your status for ticket with ID *{friendly_id}* is *{status}*", 200)
+    return make_response("hi", 200)
 #     return req['token']
 
 # 
