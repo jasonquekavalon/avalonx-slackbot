@@ -178,16 +178,15 @@ def slack_get():
     queries = datastore_client.get_message(ds_client, "message", message_query)
     return make_response(str(queries), 200)
 
-
 @app.route("/status", methods=["POST"])
 # @verify_slack_token
 def slack_status():
     # logger.info("Request received for status endpoint...")
     req = request.form.to_dict()
     logger.info(req)
-    friendly_id = req['payload'].split("value")[1]
+    friendly_id = req['payload'].split("value")[1].split('"')[1]
     # status = datastore_client.get_status(ds_client, "message", friendly_id)
-
+    print(stringg)
     # return make_response(f"Your status for ticket with ID *{friendly_id}* is *{status}*", 200)
     return make_response(friendly_id, 200)
 #     return req['token']
@@ -201,7 +200,7 @@ def slack_resolve_message():
     req = request.form.to_dict()
 
     def process(req):
-        friendly_id = req['text'].split()[0]
+        friendly_id = req['text'].split()[0].split('"')[1]
         updated_status = "Completed"
         datastore_client.update_status(ds_client, "message", updated_status, friendly_id)
 
