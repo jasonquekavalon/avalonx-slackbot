@@ -101,7 +101,7 @@ def slack_gcp():
             "text": f"Your Message ID is *{friendly_id}*.",
             "attachments": [
                 {
-                    "text": "Choose a game to play",
+                    # "text": "Choose a game to play",
                     "fallback": "You are unable to choose a game",
                     "callback_id": "avalon-commands",
                     "color": "#3AA3E3",
