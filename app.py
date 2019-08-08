@@ -105,7 +105,7 @@ def slack_gcp():
                 {
                     # "text": "Choose a game to play",
                     "fallback": "You are unable to choose a game",
-                    "callback_id": "avalon-commands",
+                    "callback_id": "status",
                     "color": "#3AA3E3",
                     "attachment_type": "default",
                     "actions": [
@@ -211,8 +211,14 @@ def slack_status():
     # logger.info("Request received for status endpoint...")
     req = request.form.to_dict()
     friendly_id = req['payload'].split("value")[1].split('"')[2]
-    status = datastore_client.get_status(ds_client, "message", friendly_id)
-    return make_response(f"Your status for ticket with ID *{friendly_id}* is *{status}*", 200)
+    callback_id = req['payload'].split("callback_id")[1].split('"')[2]
+
+    if callback_id == "status":
+        status = datastore_client.get_status(ds_client, "message", friendly_id)
+        return make_response(f"Your status for ticket with ID *{friendly_id}* is *{status}*", 200)
+    else:
+        return slack_resolve_message(friendly_id)
+
     # return make_response(friendly_id, 200)
 #     return req['token']
 
@@ -220,12 +226,12 @@ def slack_status():
 
 @app.route("/resolve_message", methods=["POST"])
 # @verify_slack_token
-def slack_resolve_message():
+def slack_resolve_message(friendly_id):
     logger.info("Request received for resolve_message...")
-    req = request.form.to_dict()
+    # req = request.form.to_dict()
 
     def process(req):
-        friendly_id = req['text'].split()[0].split('"')[1]
+        # friendly_id = req['text'].split()[0].split('"')[1]
         updated_status = "Completed"
         datastore_client.update_status(ds_client, "message", updated_status, friendly_id)
 
