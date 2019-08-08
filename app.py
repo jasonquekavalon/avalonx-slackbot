@@ -97,6 +97,7 @@ def slack_gcp():
         thread = Thread(target=process, kwargs={'req': req, 'friendly_id': friendly_id})  # Start background thread to process
         thread.start()
 
+        website = f"https://alfred-dev-1.appspot.com/?friendly_id={friendly_id}&team_id={req['team_domain']}"
         msg = {
             "text": f"Your Message ID is *{friendly_id}*.",
             "attachments": [
@@ -117,7 +118,7 @@ def slack_gcp():
                             "name": "command",
                             "text": "Upload a screenshot",
                             "type": "button",
-                            "value": "maze"
+                            "url": website
                         },
                     ]
                 }
@@ -164,6 +165,7 @@ def slack_response():
     
     thread = Thread(target=process, kwargs={'req': req})  # Create background thread
     thread.start()
+
     return make_response("Response has been sent!", 200)
 
 
@@ -255,7 +257,7 @@ def slack_buttons():
     "text": "Would you like to play a game?",
     "attachments": [
         {
-            "text": "Choose a game to play",
+            "text": "Choose a game to play pls",
             "fallback": "You are unable to choose a game",
             "callback_id": "wopr_game",
             "color": "#3AA3E3",
