@@ -11,6 +11,10 @@ logger = logging.getLogger()
 
 
 def get_token():
+    if os.getenv("PROJECT_ID") == "alfred-dev-emulator":
+        # Don't authenticate when testing
+        return "Bearer fake-token"
+
     IS_SANDBOX = True
     KEY_FILE = cfg.KEY_FILE
     ISSUER = cfg.ISSUER
@@ -18,7 +22,6 @@ def get_token():
 
     DOMAIN = 'test' if IS_SANDBOX else 'login'
 
-    logger.debug('Loading private key...')
     with open(KEY_FILE) as fd:
         private_key = fd.read()
 
