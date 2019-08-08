@@ -118,7 +118,8 @@ def slack_gcp():
                             "name": "command",
                             "text": "Upload a screenshot",
                             "type": "button",
-                            "url": website
+                            # "url": website
+                            "value": "chess"
                         },
                     ]
                 }
