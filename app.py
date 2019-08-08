@@ -98,6 +98,7 @@ def slack_gcp():
         thread.start()
 
         # website = f"https://alfred-dev-1.appspot.com/?friendly_id={friendly_id}&team_id={req['team_domain']}"
+        
         msg = {
             "text": f"Your Message ID is *{friendly_id}*.",
             "attachments": [
