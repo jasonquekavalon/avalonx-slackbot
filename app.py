@@ -77,7 +77,8 @@ def slack_gcp():
 
             message = f"*{req['user_name']}* from workspace *{req['team_domain']}* says: *{following_message}*. "
 
-            stored_messages = datastore_client.get_saved_messages(ds_client, "message", friendly_id)
+            # stored_messages = datastore_client.get_saved_messages(ds_client, "message", friendly_id)
+            stored_messages = datastore_client.get_saved_messages(ds_client, "message", friendly_id, "text")
             if isinstance(stored_messages, str):
                 stored_messages = [stored_messages]
             stored_messages.append(following_message)
@@ -122,9 +123,11 @@ def slack_response():
 
         response_to_message_split = req["text"].split(maxsplit=1)[1:]
         response_to_message = response_to_message_split[0]
-        channel_name = datastore_client.get_channelname(ds_client, "message", friendly_id)
+        # channel_name = datastore_client.get_channelname(ds_client, "message", friendly_id)
+        channel_name = datastore_client.get_channelname(ds_client, "message", friendly_id, "channel_name")
         response = f"*{req['user_name']}* from workspace *{req['team_domain']}* has responded to Message ID *{friendly_id}* in {req['channel_name']}: *{response_to_message}*. To respond, type `/avalonx message_id {friendly_id} <INPUT RESPONSE HERE>`. To resolve this conversation, type `/avalonx-resolve {friendly_id}`."
-        stored_responses = datastore_client.get_saved_responses(ds_client, "message", friendly_id)
+        # stored_responses = datastore_client.get_saved_responses(ds_client, "message", friendly_id)
+        stored_responses = datastore_client.get_saved_responses(ds_client, "message", friendly_id, "response")
         if stored_responses == None:
             stored_responses = []
 
@@ -145,7 +148,8 @@ def slack_response():
 def slack_get():
     message_query = request.args.get("message_id")
     # Get the message from the database using the datastore client
-    queries = datastore_client.get_message(ds_client, "message", message_query)
+    queries = datastore_client.get_message(ds_client, "message", message_query, "message")
+    # queries = datastore_client.get_message(ds_client, "message", message_query)
     return make_response(str(queries), 200)
 
 
@@ -155,7 +159,8 @@ def slack_status():
     logger.info("Request received for status endpoint...")
     req = request.form.to_dict()
     friendly_id = req['text']
-    status = datastore_client.get_status(ds_client, "message", friendly_id)
+    # status = datastore_client.get_status(ds_client, "message", friendly_id)
+    status = datastore_client.get_status(ds_client, "message", friendly_id, "status")
 
     return make_response(f"Your status for ticket with ID *{friendly_id}* is *{status}*", 200)
 #     return req['token']
