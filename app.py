@@ -97,7 +97,35 @@ def slack_gcp():
         thread = Thread(target=process, kwargs={'req': req, 'friendly_id': friendly_id})  # Start background thread to process
         thread.start()
 
-        return make_response(f"Your Message ID is *{friendly_id}*. To check the status of your message, type `/avalonx-message-status {friendly_id}`. To upload a screenshot, type `/avalonx-screenshot {friendly_id}`.", 200)
+        msg = {
+            "text": f"Your Message ID is *{friendly_id}*.",
+            "attachments": [
+                {
+                    "text": "Choose a game to play",
+                    "fallback": "You are unable to choose a game",
+                    "callback_id": "avalon-commands",
+                    "color": "#3AA3E3",
+                    "attachment_type": "default",
+                    "actions": [
+                        {
+                            "name": "command",
+                            "text": "Message status",
+                            "type": "button",
+                            "value": "chess"
+                        },
+                        {
+                            "name": "command",
+                            "text": "Upload a screenshot",
+                            "type": "button",
+                            "value": "maze"
+                        },
+                    ]
+                }
+            ]
+        }
+
+        return(jsonify(msg), 200)
+        # return make_response(f"Your Message ID is *{friendly_id}*. To check the status of your message, type `/avalonx-message-status {friendly_id}`. To upload a screenshot, type `/avalonx-screenshot {friendly_id}`.", 200)
     else:
         return make_response("You're missing the required properties", 400)
 
