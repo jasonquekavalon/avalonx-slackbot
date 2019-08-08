@@ -185,11 +185,11 @@ def slack_status():
     # logger.info("Request received for status endpoint...")
     req = request.form.to_dict()
     logger.info(req)
-    # friendly_id = req["payload"]["actions"][0]["value"]
+    friendly_id = req['payload']
     # status = datastore_client.get_status(ds_client, "message", friendly_id)
 
     # return make_response(f"Your status for ticket with ID *{friendly_id}* is *{status}*", 200)
-    return make_response(str(req), 200)
+    return make_response(friendly_id, 200)
 #     return req['token']
 
 # 
