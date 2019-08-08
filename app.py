@@ -118,8 +118,8 @@ def slack_gcp():
                             "name": "command",
                             "text": "Upload a screenshot",
                             "type": "button",
-                            # "url": website
-                            "value": "chess"
+                            "url": f"https://alfred-dev-1.appspot.com/?friendly_id={friendly_id}&team_id={req['team_domain']}"
+                            # "value": "chess"
                         },
                     ]
                 }
