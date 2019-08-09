@@ -174,13 +174,6 @@ def slack_response():
                             "text": "Upload a screenshot",
                             "type": "button",
                             "url": f"https://alfred-dev-1.appspot.com/?friendly_id={friendly_id}&team_id={req['team_domain']}"
-                        },
-                        {
-                            "name": "screenshot",
-                            "text": "Get screenshots",
-                            "type": "button",
-                            "value": f"{friendly_id}"
-
                         }
                     ]
                 }
