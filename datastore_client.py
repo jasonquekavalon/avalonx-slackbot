@@ -41,47 +41,55 @@ def get_item(client, kind, id, item):
     message = client.get(key)
     return message.get("message")
 
-def get_status(client, kind, id):
-    key = client.key('message', id)
-    status = client.get(key)
-    return status.get("status")
+# def get_status(client, kind, id):
+#     key = client.key('message', id)
+#     status = client.get(key)
+#     return status.get("status")
 
-def update_status(client, kind, data, id):
+def update_item(client, kind, data, id, type):
     key = client.key(kind, id)
-    message = client.get(key)
-    for status in message:
-        message[status] = message[status]
-    message["status"] = data
-    client.put(message)
+    entity = client.get(key)
+    entity[type] = data
+    client.put(entity)
+    return entity[type]
+
+
+# def update_status(client, kind, data, id):
+#     key = client.key(kind, id)
+#     message = client.get(key)
+#     for status in message:
+#         message[status] = message[status]
+#     message["status"] = data
+#     client.put(message)
    
-    return message["status"]
+#     return message["status"]
 
-def update_message(client, kind, data, id):
-    key = client.key(kind, id)
-    Entity = client.get(key)
-    for message in Entity:
-        Entity[message] = Entity[message]
-    Entity["text"] = data
-    client.put(Entity)
+# def update_message(client, kind, data, id):
+#     key = client.key(kind, id)
+#     Entity = client.get(key)
+#     for message in Entity:
+#         Entity[message] = Entity[message]
+#     Entity["text"] = data
+#     client.put(Entity)
 
-    return Entity["text"]
+#     return Entity["text"]
 
-def update_response(client, kind, data, id):
-    key = client.key(kind, id) 
-    message = client.get(key)
-    for response in message:
-        message[response] = message[response]
-    message["response"] = data
-    client.put(message)
+# def update_response(client, kind, data, id):
+#     key = client.key(kind, id) 
+#     message = client.get(key)
+#     for response in message:
+#         message[response] = message[response]
+#     message["response"] = data
+#     client.put(message)
    
-    return message["response"]
+#     return message["response"]
 
-def update_filename(client, kind, data, id):
-    key = client.key(kind, id)
-    Entity = client.get(key)
-    for message in Entity:
-        Entity[message] = Entity[message]
-    Entity["file name"] = data
-    client.put(Entity)
+# def update_filename(client, kind, data, id):
+#     key = client.key(kind, id)
+#     Entity = client.get(key)
+#     for message in Entity:
+#         Entity[message] = Entity[message]
+#     Entity["file name"] = data
+#     client.put(Entity)
 
-    return Entity["file name"]  
+#     return Entity["file name"]  

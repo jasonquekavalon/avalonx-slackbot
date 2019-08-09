@@ -145,7 +145,7 @@ def slack_response():
         elif isinstance(stored_responses, str):
             stored_responses = [stored_responses]
         stored_responses.append(response_to_message)
-        datastore_client.update_response(ds_client, "message", stored_responses, friendly_id, "response")
+        datastore_client.update_item(ds_client, "message", stored_responses, friendly_id, "response")
         # datastore_client.update_response(ds_client, "message", stored_responses, friendly_id)
 
         slack_client.chat_postMessage(channel=channel_name, text=response)
@@ -186,7 +186,7 @@ def slack_resolve_message():
     def process(req):
         friendly_id = req['text'].split()[0]
         updated_status = "Completed"
-        datastore_client.update_status(ds_client, "message", updated_status, friendly_id, "status")
+        datastore_client.update_item(ds_client, "message", updated_status, friendly_id, "status")
         # datastore_client.update_status(ds_client, "message", updated_status, friendly_id)
 
         slack_client.chat_postMessage(
