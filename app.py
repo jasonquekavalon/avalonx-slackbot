@@ -219,8 +219,9 @@ def slack_status():
     friendly_id = req['payload'].split("value")[1].split('"')[2]
     team_domain = req['payload'].split("domain")[1].split('"')[2]
     callback_id = req['payload'].split("callback_id")[1].split('"')[2]
+    name = req['payload'].split("name")[1].split('"')[2]
 
-    if callback_id == "status":
+    if callback_id == "status" and name == "command":
         status = datastore_client.get_status(ds_client, "message", friendly_id)
 
         msg = {
