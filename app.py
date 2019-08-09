@@ -81,20 +81,18 @@ def slack_gcp():
             internal_message = f"*{req['user_name']}* from workspace *{req['team_domain']}* has a question in {req['channel_name']}: *{req['text']}*. To respond, type `/avalonx-respond {friendly_id} <response>`."
             slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=internal_message)
         else:
-            friendly_id = req['text'].split()[1]  # /avalonx message_id 1283219837857402 <message>
+            friendly_id = req['text'].split()[1] 
             following_message_split = req["text"].split(maxsplit=2)[2:]
             following_message = following_message_split[0]
 
             message = f"*{req['user_name']}* from workspace *{req['team_domain']}* says: *{following_message}*. "
 
-            # stored_messages = datastore_client.get_saved_messages(ds_client, "message", friendly_id)
-            stored_messages = datastore_client.get_saved_messages(ds_client, "message", friendly_id, "text")
+            stored_messages = datastore_client.get_item(ds_client, "message", friendly_id, "text")
             if isinstance(stored_messages, str):
                 stored_messages = [stored_messages]
             stored_messages.append(following_message)
 
             datastore_client.update_item(ds_client, "message", stored_messages, friendly_id, "text")
-            # datastore_client.update_message(ds_client, "message", stored_messages, friendly_id)
 
             internal_message = f"*{req['user_name']}* from workspace *{req['team_domain']}* has a question in {req['channel_name']}: *{following_message}*. To respond, type `/avalonx-respond {friendly_id} <response>`."
             slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=internal_message)
@@ -122,23 +120,13 @@ def slack_response():
     req = request.form.to_dict()
 
     def process(req):
-        friendly_id = req['text'].split()[0]  # Should be a uuid if it was sent in as the first word
-        # Ensure that message_id is a real uuid.
-
-        # try:
-        #     _ = UUID(str(message_id), version=4)
-        # except ValueError:
-        #     # If it's a value error, then the string
-        #     # is not a valid hex code for a UUID.
-        #     return make_response("You're missing the required properties. Response should be in this format `/avalonx-respond <message id> <response>`. ", 400)
+        friendly_id = req['text'].split()[0]  
 
         response_to_message_split = req["text"].split(maxsplit=1)[1:]
         response_to_message = response_to_message_split[0]
-        # channel_name = datastore_client.get_channelname(ds_client, "message", friendly_id)
-        channel_name = datastore_client.get_channelname(ds_client, "message", friendly_id, "channel_name")
+        channel_name = datastore_client.get_item(ds_client, "message", friendly_id, "channel_name")
         response = f"*{req['user_name']}* from workspace *{req['team_domain']}* has responded to Message ID *{friendly_id}* in {req['channel_name']}: *{response_to_message}*. To respond, type `/avalonx message_id {friendly_id} <INPUT RESPONSE HERE>`. To resolve this conversation, type `/avalonx-resolve {friendly_id}`."
-        # stored_responses = datastore_client.get_saved_responses(ds_client, "message", friendly_id)
-        stored_responses = datastore_client.get_saved_responses(ds_client, "message", friendly_id, "response")
+        stored_responses = datastore_client.get_item(ds_client, "message", friendly_id, "response")
         if stored_responses == None:
             stored_responses = []
 
@@ -146,7 +134,6 @@ def slack_response():
             stored_responses = [stored_responses]
         stored_responses.append(response_to_message)
         datastore_client.update_item(ds_client, "message", stored_responses, friendly_id, "response")
-        # datastore_client.update_response(ds_client, "message", stored_responses, friendly_id)
 
         slack_client.chat_postMessage(channel=channel_name, text=response)
 
@@ -159,8 +146,7 @@ def slack_response():
 def slack_get():
     message_query = request.args.get("message_id")
     # Get the message from the database using the datastore client
-    queries = datastore_client.get_message(ds_client, "message", message_query, "message")
-    # queries = datastore_client.get_message(ds_client, "message", message_query)
+    queries = datastore_client.get_item(ds_client, "message", message_query, "message")
     return make_response(str(queries), 200)
 
 
@@ -170,8 +156,7 @@ def slack_status():
     logger.info("Request received for status endpoint...")
     req = request.form.to_dict()
     friendly_id = req['text']
-    # status = datastore_client.get_status(ds_client, "message", friendly_id)
-    status = datastore_client.get_status(ds_client, "message", friendly_id, "status")
+    status = datastore_client.get_item(ds_client, "message", friendly_id, "status")
 
     return make_response(f"Your status for ticket with ID *{friendly_id}* is *{status}*", 200)
 #     return req['token']
@@ -187,7 +172,6 @@ def slack_resolve_message():
         friendly_id = req['text'].split()[0]
         updated_status = "Completed"
         datastore_client.update_item(ds_client, "message", updated_status, friendly_id, "status")
-        # datastore_client.update_status(ds_client, "message", updated_status, friendly_id)
 
         slack_client.chat_postMessage(
             channel=DEFAULT_BACKEND_CHANNEL, text=f"*{req['user_name']}* from workspace *{req['team_domain']}* has resolved their ticket with Message ID *{friendly_id}*")
@@ -205,7 +189,6 @@ def slack_screenshot():
     friendly_id = req['text']
     team_id = req["team_domain"]
     website = f"https://alfred-dev-1.appspot.com/?friendly_id={friendly_id}&team_id={team_id}"
-    # slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=f"*{req['user_name']}* from workspace *{req['team_domain']}* is submitting screenshots under Message ID: *{friendly_id}*")
     return make_response(f"Please upload your screenshots at: {website}. Thank you!", 200)
 
 
@@ -246,14 +229,6 @@ def list_blobs_with_prefix(bucket_name, prefix):
         yield index, blob
 
 
-@app.route("/hello", methods=["POST"])
-# @verify_slack_token
-def slash_hello():
-    # slack_client.chat_postMessage(channel="alfred-dev-internal", text="test test")
-    print("hello")
-    return make_response("", 200)
-
-
 def create_sf_case(message, team_id, friendly_id):
     # You should unpack the fields we want to save into Salesforce here (maybe all fields for now) into their appropriate SF equivalents
     token = get_token()
@@ -267,7 +242,6 @@ def create_sf_case(message, team_id, friendly_id):
         "Subject": message,
         "SuppliedName": "Alfred GCP Support"
     }
-# comment
     header = {
         "Authorization": "Bearer {}".format(token)
     }
