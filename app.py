@@ -197,7 +197,7 @@ def slack_response():
         logger.info("hi")
         logger.info(jsonify(msg))
         logger.info("hi2")
-        slack_client.chat_postMessage(channel=channel_name, text=jsonify(msg))
+        slack_client.chat_postMessage(channel=channel_name, blocks=[msg])
     
     thread = Thread(target=process)  # Create background thread
     thread.start()
