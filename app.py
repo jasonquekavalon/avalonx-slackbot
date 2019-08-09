@@ -217,6 +217,7 @@ def slack_status():
     # logger.info("Request received for status endpoint...")
     req = request.form.to_dict()
     friendly_id = req['payload'].split("value")[1].split('"')[2]
+    team_domain = req['payload'].split("domain")[1].split('"')[2]
     callback_id = req['payload'].split("callback_id")[1].split('"')[2]
 
     if callback_id == "status":
@@ -242,7 +243,7 @@ def slack_status():
                             "name": "command",
                             "text": "Upload a screenshot",
                             "type": "button",
-                            "url": f"https://alfred-dev-1.appspot.com/?friendly_id={friendly_id}&team_id={req['team_domain']}"
+                            "url": f"https://alfred-dev-1.appspot.com/?friendly_id={friendly_id}&team_id={team_domain}"
                             # "value": "chess"
                         },
                         {
@@ -256,7 +257,6 @@ def slack_status():
             ]
         }
 
-        
         return make_response(jsonify(msg), 200)
     else:
         return slack_resolve_message(friendly_id)
