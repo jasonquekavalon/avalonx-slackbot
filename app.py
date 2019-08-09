@@ -168,8 +168,10 @@ def slack_response():
         datastore_client.update_response(ds_client, "message", stored_responses, friendly_id)
 
         msg = {
-            "text": f"*{req['user_name']}* from workspace *{req['team_domain']}* has responded to Message ID *{friendly_id}* in {req['channel_name']}: *{response_to_message}*. To respond, type `/avalonx message_id {friendly_id} <INPUT RESPONSE HERE>`.",
-            "attachments": [
+            "text": f"*{req['user_name']}* from workspace *{req['team_domain']}* has responded to Message ID *{friendly_id}* in {req['channel_name']}: *{response_to_message}*. To respond, type `/avalonx message_id {friendly_id} <INPUT RESPONSE HERE>`."
+        }
+
+        attach = [
                 {
                     "text": "Else:",
                     "fallback": "You are unable to choose a game",
@@ -191,12 +193,12 @@ def slack_response():
                         }
                     ]
                 }
-            ]
-        }
+        ]
+        
         logger.info("hi")
         logger.info(jsonify(msg))
         logger.info("hi2")
-        slack_client.chat_postMessage(channel=channel_name, blocks=[msg])
+        slack_client.chat_postMessage(channel=channel_name, text=msg, attachments=attach)
     
     thread = Thread(target=process)  # Create background thread
     thread.start()
