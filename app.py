@@ -178,7 +178,7 @@ def slack_response():
                     "attachment_type": "default",
                     "actions": [
                         {
-                            "name": "command",
+                            "name": "resolve",
                             "text": "Resolve message",
                             "type": "button",
                             "value": f"{friendly_id}"
@@ -220,6 +220,10 @@ def slack_status():
     team_domain = req['payload'].split("domain")[1].split('"')[2]
     callback_id = req['payload'].split("callback_id")[1].split('"')[2]
     name = req['payload'].split("name")[1].split('"')[2]
+
+    logger.info(friendly_id)
+    logger.info(team_domain)
+    logger.info(callback_id)
 
     if callback_id == "status" and name == "command":
         status = datastore_client.get_status(ds_client, "message", friendly_id)
@@ -324,51 +328,7 @@ def slack_getscreenshot():
 @app.route("/buttons", methods=["POST"])
 def slack_buttons():
     req = request.form.to_dict()
-    '''
-    if callback id == "screenshot-link":
-        slack_screenshot()
-    else:
-        slack_status()
-    '''
-    d = {
-    "text": "Would you like to play a game?",
-    "attachments": [
-        {
-            "text": "Choose a game to play pls",
-            "fallback": "You are unable to choose a game",
-            "callback_id": "wopr_game",
-            "color": "#3AA3E3",
-            "attachment_type": "default",
-            "actions": [
-                {
-                    "name": "game",
-                    "text": "Chess",
-                    "type": "button",
-                    "value": "chess"
-                },
-                {
-                    "name": "game",
-                    "text": "Falken's Maze",
-                    "type": "button",
-                    "value": "maze"
-                },
-                {
-                    "name": "game",
-                    "text": "Thermonuclear War",
-                    "style": "danger",
-                    "type": "button",
-                    "value": "war",
-                    "confirm": {
-                        "title": "Are you sure?",
-                        "text": "Wouldn't you prefer a good game of chess?",
-                        "ok_text": "Yes",
-                        "dismiss_text": "No"
-                    }
-                }
-            ]
-        }
-    ]
-    }
+    
     return make_response(jsonify(d), 200)
 
 def list_blobs_with_prefix(bucket_name, prefix):
