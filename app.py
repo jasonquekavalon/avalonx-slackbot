@@ -127,7 +127,7 @@ def slack_gcp():
             ]
         }
 
-        return(jsonify(msg), 200)
+        return make_response(jsonify(msg), 200)
         # return make_response(f"Your Message ID is *{friendly_id}*. To check the status of your message, type `/avalonx-message-status {friendly_id}`. To upload a screenshot, type `/avalonx-screenshot {friendly_id}`.", 200)
     else:
         return make_response("You're missing the required properties", 400)
@@ -137,9 +137,10 @@ def slack_gcp():
 # @verify_slack_token
 def slack_response():
     logger.info("Request received for response...")
-    req = request.form.to_dict()
+    
 
     def process(req):
+        req = request.form.to_dict()
         friendly_id = req['text'].split()[0]  # Should be a uuid if it was sent in as the first word
         # Ensure that message_id is a real uuid.
 
@@ -195,7 +196,7 @@ def slack_response():
         logger.info("hi2")
         slack_client.chat_postMessage(channel=channel_name, text=jsonify(msg))
     
-    thread = Thread(target=process, kwargs={'req': req})  # Create background thread
+    thread = Thread(target=process, kwargs={'req': request})  # Create background thread
     thread.start()
 
     return make_response("Response has been sent!", 200)
