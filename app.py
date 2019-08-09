@@ -221,14 +221,14 @@ def slack_status():
     callback_id = req['payload'].split("callback_id")[1].split('"')[2]
     name = req['payload'].split("name")[1].split('"')[2]
 
-    logger.info(friendly_id)
-    logger.info(team_domain)
-    logger.info(callback_id)
-    logger.info(name)
+    # logger.info(friendly_id)
+    # logger.info(team_domain)
+    # logger.info(callback_id)
+    # logger.info(name)
 
     if callback_id == "status" and name == "command":
         status = datastore_client.get_status(ds_client, "message", friendly_id)
-        logger.info("check")
+        # logger.info("check")
         msg = {
             "text": f"Your status for ticket with ID *{friendly_id}* is *{status}*. To respond, type `/avalonx message_id {friendly_id} <INPUT RESPONSE HERE>`.",
             "attachments": [
@@ -262,7 +262,6 @@ def slack_status():
                 }
             ]
         }
-
         return make_response(jsonify(msg), 200)
     else:
         return slack_resolve_message(friendly_id)
