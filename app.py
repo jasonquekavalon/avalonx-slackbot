@@ -153,7 +153,7 @@ def slack_response():
         response_to_message_split = req["text"].split(maxsplit=1)[1:]
         response_to_message = response_to_message_split[0]
         channel_name = datastore_client.get_channelname(ds_client, "message", friendly_id)
-        # response = f"*{req['user_name']}* from workspace *{req['team_domain']}* has responded to Message ID *{friendly_id}* in {req['channel_name']}: *{response_to_message}*. To respond, type `/avalonx message_id {friendly_id} <INPUT RESPONSE HERE>`. To resolve this conversation, type `/avalonx-resolve {friendly_id}`."
+        response = f"*{req['user_name']}* from workspace *{req['team_domain']}* has responded to Message ID *{friendly_id}* in {req['channel_name']}: *{response_to_message}*. To respond, type `/avalonx message_id {friendly_id} <INPUT RESPONSE HERE>`. To resolve this conversation, type `/avalonx-resolve {friendly_id}`."
         stored_responses = datastore_client.get_saved_responses(ds_client, "message", friendly_id)
         if stored_responses == None:
             stored_responses = []
@@ -191,7 +191,7 @@ def slack_response():
             ]
         }
         logger.info("hi i made it here")
-        slack_client.chat_postMessage(channel=channel_name, text="hi")
+        slack_client.chat_postMessage(channel=channel_name, text=response)
     
     thread = Thread(target=process, kwargs={'req': req})  # Create background thread
     thread.start()
