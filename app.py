@@ -248,7 +248,7 @@ def slack_status():
                             # "value": "chess"
                         },
                         {
-                            "name": "command",
+                            "name": "resolve",
                             "text": "Resolve message",
                             "type": "button",
                             "value": f"{friendly_id}"
