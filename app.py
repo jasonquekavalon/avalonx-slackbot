@@ -167,9 +167,7 @@ def slack_response():
         stored_responses.append(response_to_message)
         datastore_client.update_response(ds_client, "message", stored_responses, friendly_id)
 
-        msg = {
-            "text": f"*{req['user_name']}* from workspace *{req['team_domain']}* has responded to Message ID *{friendly_id}* in {req['channel_name']}: *{response_to_message}*. To respond, type `/avalonx message_id {friendly_id} <INPUT RESPONSE HERE>`."
-        }
+        msg = f"*{req['user_name']}* from workspace *{req['team_domain']}* has responded to Message ID *{friendly_id}* in {req['channel_name']}: *{response_to_message}*. To respond, type `/avalonx message_id {friendly_id} <INPUT RESPONSE HERE>`."
 
         attach = [
                 {
