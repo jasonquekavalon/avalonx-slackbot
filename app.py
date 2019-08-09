@@ -221,7 +221,43 @@ def slack_status():
 
     if callback_id == "status":
         status = datastore_client.get_status(ds_client, "message", friendly_id)
-        return make_response(f"Your status for ticket with ID *{friendly_id}* is *{status}*", 200)
+
+        msg = {
+            "text": f"Your status for ticket with ID *{friendly_id}* is *{status}*. To respond, type `/avalonx message_id {friendly_id} <INPUT RESPONSE HERE>`.",
+            "attachments": [
+                {
+                    "text": "Else:",
+                    "fallback": "You are unable to choose a game",
+                    "callback_id": "status",
+                    "color": "#3AA3E3",
+                    "attachment_type": "default",
+                    "actions": [
+                        {
+                            "name": "command",
+                            "text": "Message status",
+                            "type": "button",
+                            "value": f"{friendly_id}"
+                        },
+                        {
+                            "name": "command",
+                            "text": "Upload a screenshot",
+                            "type": "button",
+                            "url": f"https://alfred-dev-1.appspot.com/?friendly_id={friendly_id}&team_id={req['team_domain']}"
+                            # "value": "chess"
+                        },
+                        {
+                            "name": "command",
+                            "text": "Resolve message",
+                            "type": "button",
+                            "value": f"{friendly_id}"
+                        }
+                    ]
+                }
+            ]
+        }
+
+        
+        return make_response(jsonify(msg), 200)
     else:
         return slack_resolve_message(friendly_id)
 
