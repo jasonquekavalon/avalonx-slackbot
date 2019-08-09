@@ -138,64 +138,66 @@ def slack_gcp():
 def slack_response():
     logger.info("Request received for response...")
     
-    def process(request):
-        req = request.form.to_dict()
-        friendly_id = req['text'].split()[0]  # Should be a uuid if it was sent in as the first word
-        # Ensure that message_id is a real uuid.
+    def process(req):
+        with app.test_request_context():
+            request = req
+            req = request.form.to_dict()
+            friendly_id = req['text'].split()[0]  # Should be a uuid if it was sent in as the first word
+            # Ensure that message_id is a real uuid.
 
-        # try:
-        #     _ = UUID(str(message_id), version=4)
-        # except ValueError:
-        #     # If it's a value error, then the string
-        #     # is not a valid hex code for a UUID.
-        #     return make_response("You're missing the required properties. Response should be in this format `/avalonx-respond <message id> <response>`. ", 400)
+            # try:
+            #     _ = UUID(str(message_id), version=4)
+            # except ValueError:
+            #     # If it's a value error, then the string
+            #     # is not a valid hex code for a UUID.
+            #     return make_response("You're missing the required properties. Response should be in this format `/avalonx-respond <message id> <response>`. ", 400)
 
-        response_to_message_split = req["text"].split(maxsplit=1)[1:]
-        response_to_message = response_to_message_split[0]
-        channel_name = datastore_client.get_channelname(ds_client, "message", friendly_id)
-        response = f"*{req['user_name']}* from workspace *{req['team_domain']}* has responded to Message ID *{friendly_id}* in {req['channel_name']}: *{response_to_message}*. To respond, type `/avalonx message_id {friendly_id} <INPUT RESPONSE HERE>`. To resolve this conversation, type `/avalonx-resolve {friendly_id}`."
-        stored_responses = datastore_client.get_saved_responses(ds_client, "message", friendly_id)
-        if stored_responses == None:
-            stored_responses = []
+            response_to_message_split = req["text"].split(maxsplit=1)[1:]
+            response_to_message = response_to_message_split[0]
+            channel_name = datastore_client.get_channelname(ds_client, "message", friendly_id)
+            response = f"*{req['user_name']}* from workspace *{req['team_domain']}* has responded to Message ID *{friendly_id}* in {req['channel_name']}: *{response_to_message}*. To respond, type `/avalonx message_id {friendly_id} <INPUT RESPONSE HERE>`. To resolve this conversation, type `/avalonx-resolve {friendly_id}`."
+            stored_responses = datastore_client.get_saved_responses(ds_client, "message", friendly_id)
+            if stored_responses == None:
+                stored_responses = []
 
-        elif isinstance(stored_responses, str):
-            stored_responses = [stored_responses]
-        stored_responses.append(response_to_message)
-        datastore_client.update_response(ds_client, "message", stored_responses, friendly_id)
+            elif isinstance(stored_responses, str):
+                stored_responses = [stored_responses]
+            stored_responses.append(response_to_message)
+            datastore_client.update_response(ds_client, "message", stored_responses, friendly_id)
 
-        msg = {
-            "text": f"*{req['user_name']}* from workspace *{req['team_domain']}* has responded to Message ID *{friendly_id}* in {req['channel_name']}: *{response_to_message}*. To respond, type `/avalonx message_id {friendly_id} <INPUT RESPONSE HERE>`.",
-            "attachments": [
-                {
-                    "text": "Else:",
-                    "fallback": "You are unable to choose a game",
-                    "callback_id": "response",
-                    "color": "#3AA3E3",
-                    "attachment_type": "default",
-                    "actions": [
-                        {
-                            "name": "command",
-                            "text": "Resolve message",
-                            "type": "button",
-                            "value": f"{friendly_id}"
-                        },
-                        {
-                            "name": "command",
-                            "text": "Upload a screenshot",
-                            "type": "button",
-                            "url": f"https://alfred-dev-1.appspot.com/?friendly_id={friendly_id}&team_id={req['team_domain']}"
-                            # "value": "chess"
-                        },
-                    ]
-                }
-            ]
-        }
-        logger.info("hi")
-        logger.info(jsonify(msg))
-        logger.info("hi2")
-        slack_client.chat_postMessage(channel=channel_name, text=jsonify(msg))
+            msg = {
+                "text": f"*{req['user_name']}* from workspace *{req['team_domain']}* has responded to Message ID *{friendly_id}* in {req['channel_name']}: *{response_to_message}*. To respond, type `/avalonx message_id {friendly_id} <INPUT RESPONSE HERE>`.",
+                "attachments": [
+                    {
+                        "text": "Else:",
+                        "fallback": "You are unable to choose a game",
+                        "callback_id": "response",
+                        "color": "#3AA3E3",
+                        "attachment_type": "default",
+                        "actions": [
+                            {
+                                "name": "command",
+                                "text": "Resolve message",
+                                "type": "button",
+                                "value": f"{friendly_id}"
+                            },
+                            {
+                                "name": "command",
+                                "text": "Upload a screenshot",
+                                "type": "button",
+                                "url": f"https://alfred-dev-1.appspot.com/?friendly_id={friendly_id}&team_id={req['team_domain']}"
+                                # "value": "chess"
+                            },
+                        ]
+                    }
+                ]
+            }
+            logger.info("hi")
+            logger.info(jsonify(msg))
+            logger.info("hi2")
+            slack_client.chat_postMessage(channel=channel_name, text=jsonify(msg))
     
-    thread = Thread(target=process, kwargs={'request': request})  # Create background thread
+    thread = Thread(target=process, kwargs={'req': request})  # Create background thread
     thread.start()
 
     return make_response("Response has been sent!", 200)
