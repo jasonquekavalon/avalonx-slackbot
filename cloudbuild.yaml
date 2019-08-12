@@ -9,7 +9,7 @@ steps:
   entrypoint: 'hadolint'
   args: ['Dockerfile', '--ignore', 'DL3018']
 
-# This step generates the new manifest
+# 2 This step generates the new manifest
 - name: 'gcr.io/cloud-builders/gcloud'
   id: Generate manifest
   entrypoint: /bin/sh
@@ -19,24 +19,43 @@ steps:
   - '-c'
   - sed -e "s/COMMIT_SHA/${SHORT_SHA}/g" -e "s/SERVICE_NAME/${_SERVICE_NAME}/g" deployment-template.yaml > deployment.yaml
 
-# 2. Build the application inside docker. Finally, build the image.
+# 3. Validate the kubernetes deployment file
+- name: 'gcr.io/cloud-builders/kubectl'
+  args: ['apply', '--dry-run=true', '-f', 'deployment.yaml']
+  env:
+  - 'CLOUDSDK_COMPUTE_ZONE=${_GCP_COMPUTE_ZONE}'
+  - 'CLOUDSDK_CONTAINER_CLUSTER=${_GCP_CONTAINER_CLUSTER}'
+
+# 4. Build the application inside docker. Finally, build the image.
 - name: 'gcr.io/cloud-builders/docker'
   args: ['build', '-t', 'eu.gcr.io/$PROJECT_ID/${_SERVICE_NAME}:$SHORT_SHA', '.']
 
-# # 3. Tag the new image with latest so it can be pushed to GCR
-# - name: 'gcr.io/cloud-builders/docker'
-#   args: ['tag', '${_SERVICE_NAME}:latest', 'eu.gcr.io/$PROJECT_ID/${_SERVICE_NAME}:latest']
+# 5. Lint, test and build the application inside docker.
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['build', '-t', 'eu.gcr.io/$PROJECT_ID/${_SERVICE_NAME}:$SHORT_SHA', '--build-arg', 'SHA_CLOUDBUILD=$SHORT_SHA', '--build-arg', 'TAG_CLOUDBUILD=$TAG_NAME', '.']
 
-# 4. Deploy the application to GCR
+# 6. Prepare integration environment
+- name: 'docker/compose:1.22.0'
+  args: ['up', '-d', '--force-recreate']
+
+# 7. Run integration tests.
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['run', '--network', 'cloudbuild', '-e', 'RUNNING_IN_CLOUDBUILDER=true', '-t', '--entrypoint', 'python', '${_SERVICE_NAME}', '-m', 'pytest', '-v']
+
+# 8. Deploy the application to GCR
 - name: 'gcr.io/cloud-builders/docker'
   args: ['push', 'eu.gcr.io/$PROJECT_ID/${_SERVICE_NAME}:$SHORT_SHA']
 
-# 5. Deploy to kubernetes
+# 9. Deploy to kubernetes
 - name: 'gcr.io/cloud-builders/kubectl'
   args: ['apply', '-f' , 'deployment.yaml']
   env:
     - 'CLOUDSDK_COMPUTE_ZONE=${_GCP_COMPUTE_ZONE}'
     - 'CLOUDSDK_CONTAINER_CLUSTER=${_GCP_CONTAINER_CLUSTER}'
+
+# 10. Clean up integration environment
+- name: 'docker/compose:1.22.0'
+  args: ['down']
 
 substitutions:
   _PROJECT_ID: alfred-dev-1

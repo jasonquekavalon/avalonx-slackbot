@@ -2,6 +2,7 @@ import uuid
 from uuid import UUID
 from threading import Thread
 import time
+import os
 
 from flask import Flask, request, make_response, Response, jsonify, copy_current_request_context
 import requests
@@ -13,27 +14,36 @@ import config as cfg
 from log import log
 import datastore_client
 from auth import get_token
+from integration import setup_mocks
 
 log.setup_logger()
 logger = log.get_logger()
-slack_client = WebClient(cfg.SLACK_BOT_TOKEN)
+
+PROJECT_ID = os.getenv("PROJECT_ID")
+
+if PROJECT_ID == "alfred-dev-emulator":
+    setup_mocks.set_up_mocks()
+    slack_client = WebClient(cfg.SLACK_BOT_TOKEN, base_url=os.getenv('SLACK_API_URL'))
+    ds_client = datastore_client.create_client(PROJECT_ID, http=requests.Session)  # Avoid bug in Datastore emulator
+else:
+    ds_client = datastore_client.create_client(PROJECT_ID)
+    slack_client = WebClient(cfg.SLACK_BOT_TOKEN)
+
+
 SLACK_VERIFICATION_TOKEN = cfg.SLACK_VERIFICATION_TOKEN
 
-SF_CASE_URL = "https://avalonsolutions--PreProd.cs109.my.salesforce.com/services/data/v39.0/sobjects/Case"
+SF_CASE_URL = cfg.SF_API_URL or "https://avalonsolutions--PreProd.cs109.my.salesforce.com/services/data/v39.0/sobjects/Case"
 
 app = Flask(__name__)
 
 DEFAULT_BACKEND_CHANNEL = "alfred-dev-internal"
 bucket_name = "alfred-uploaded-images"
 
-thread = Thread(target=pubsub, kwargs={"slack_client": slack_client, "default_backend_channel": DEFAULT_BACKEND_CHANNEL})
+thread = Thread(target=pubsub, kwargs={"slack_client": slack_client,
+                                       "default_backend_channel": DEFAULT_BACKEND_CHANNEL})
 thread.start()
 
-# Create the datastore client
-ds_client = datastore_client.create_client("alfred-dev-1")
-
 # TODO: Add checks for all responses from slack api calls
-
 
 def verify_slack_token(func):
     """This should be used for ALL requests in the future"""
@@ -65,24 +75,24 @@ def slack_gcp():
         if "message_id" not in req['text']:
             message = f"*{req['user_name']}* from workspace *{req['team_domain']}* says: *{req['text']}*. "
             friendly_id = datastore_client.add_item(ds_client, "message", req, friendly_id)
-            # Add to salesforce
-            create_sf_case(req['text'], req['team_domain'], friendly_id)
+            if not PROJECT_ID == "alfred-dev-emulator":  # Explicitly check for now. TODO: Fix this
+                create_sf_case(req['text'], req['team_domain'], friendly_id)
 
             internal_message = f"*{req['user_name']}* from workspace *{req['team_domain']}* has a question in {req['channel_name']}: *{req['text']}*. To respond, type `/avalonx-respond {friendly_id} <response>`."
             slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=internal_message)
         else:
-            friendly_id = req['text'].split()[1]  # /avalonx message_id 1283219837857402 <message>
+            friendly_id = req['text'].split()[1] 
             following_message_split = req["text"].split(maxsplit=2)[2:]
             following_message = following_message_split[0]
 
             message = f"*{req['user_name']}* from workspace *{req['team_domain']}* says: *{following_message}*. "
 
-            stored_messages = datastore_client.get_saved_messages(ds_client, "message", friendly_id)
+            stored_messages = datastore_client.get_item(ds_client, "message", friendly_id, "text")
             if isinstance(stored_messages, str):
                 stored_messages = [stored_messages]
             stored_messages.append(following_message)
 
-            datastore_client.update_message(ds_client, "message", stored_messages, friendly_id)
+            datastore_client.update_item(ds_client, "message", stored_messages, friendly_id, "text")
 
             internal_message = f"*{req['user_name']}* from workspace *{req['team_domain']}* has a question in {req['channel_name']}: *{following_message}*. To respond, type `/avalonx-respond {friendly_id} <response>`."
             slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=internal_message)
@@ -94,7 +104,8 @@ def slack_gcp():
         friendly_id = f"{req['team_domain']}-{count}"
         req['friendly_id'] = friendly_id
         req["status"] = "Pending"
-        thread = Thread(target=process, kwargs={'req': req, 'friendly_id': friendly_id})  # Start background thread to process
+        # Start background thread to process
+        thread = Thread(target=process, kwargs={'req': req, 'friendly_id': friendly_id})
         thread.start()
 
         # website = f"https://alfred-dev-1.appspot.com/?friendly_id={friendly_id}&team_id={req['team_domain']}"
@@ -142,16 +153,16 @@ def slack_response():
 
         response_to_message_split = req["text"].split(maxsplit=1)[1:]
         response_to_message = response_to_message_split[0]
-        channel_name = datastore_client.get_channelname(ds_client, "message", friendly_id)
+        channel_name = datastore_client.get_item(ds_client, "message", friendly_id, "channel_name")
         response = f"*{req['user_name']}* from workspace *{req['team_domain']}* has responded to Message ID *{friendly_id}* in {req['channel_name']}: *{response_to_message}*. To respond, type `/avalonx message_id {friendly_id} <INPUT RESPONSE HERE>`. To resolve this conversation, type `/avalonx-resolve {friendly_id}`."
-        stored_responses = datastore_client.get_saved_responses(ds_client, "message", friendly_id)
+        stored_responses = datastore_client.get_item(ds_client, "message", friendly_id, "response")
         if stored_responses == None:
             stored_responses = []
 
         elif isinstance(stored_responses, str):
             stored_responses = [stored_responses]
         stored_responses.append(response_to_message)
-        datastore_client.update_response(ds_client, "message", stored_responses, friendly_id)
+        datastore_client.update_item(ds_client, "message", stored_responses, friendly_id, "response")
 
         msg = f"*{req['user_name']}* from workspace *{req['team_domain']}* has responded to Message ID *{friendly_id}* in {req['channel_name']}: *{response_to_message}*. To respond, type `/avalonx message_id {friendly_id} <INPUT RESPONSE HERE>`."
 
@@ -243,10 +254,11 @@ def slack_resolve_message(friendly_id):
 
     def process(req):
         updated_status = "Completed"
-        datastore_client.update_status(ds_client, "message", updated_status, friendly_id)
+        datastore_client.update_item(ds_client, "message", updated_status, friendly_id, "status")
 
-        slack_client.chat_postMessage(channel=DEFAULT_BACKEND_CHANNEL, text=f"*{req['user_name']}* from workspace *{req['team_domain']}* has resolved their ticket with Message ID *{friendly_id}*")
-    
+        slack_client.chat_postMessage(
+            channel=DEFAULT_BACKEND_CHANNEL, text=f"*{req['user_name']}* from workspace *{req['team_domain']}* has resolved their ticket with Message ID *{friendly_id}*")
+
     thread = Thread(target=process, kwargs={'req': req})
     thread.start()
     return make_response("Your issue has been resolved. Thank you for using the Alfred slack bot. We hope you have a nice day!", 200)
@@ -266,8 +278,9 @@ def slack_getscreenshot(friendly_id, team_domain):
             with open("hello.png", "rb") as image:
                 f = image.read()
                 b = bytearray(f)
-                slack_client.files_upload(token=cfg.SLACK_BOT_TOKEN, channels=DEFAULT_BACKEND_CHANNEL, file=b, filename=f"{friendly_id}_{index}.png")
-    
+                slack_client.files_upload(token=cfg.SLACK_BOT_TOKEN, channels=DEFAULT_BACKEND_CHANNEL,
+                                          file=b, filename=f"{friendly_id}_{index}.png")
+
     thread = Thread(target=process, kwargs={'req': req})
     thread.start()
     return make_response("", 200)
@@ -296,7 +309,6 @@ def create_sf_case(message, team_id, friendly_id):
         "Subject": message,
         "SuppliedName": "Alfred GCP Support"
     }
-
     header = {
         "Authorization": "Bearer {}".format(token)
     }
