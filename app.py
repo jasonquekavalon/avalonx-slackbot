@@ -136,7 +136,10 @@ def slack_gcp():
             ]
         }
 
-        return make_response(jsonify(msg), 200)
+        response = make_response(jsonify(msg), 200)
+        response.headers['Content-Type'] = "application/json"
+        return response
+        # return make_response(jsonify(msg), 200)
     else:
         return make_response("You're missing the required properties", 400)
 
@@ -190,7 +193,7 @@ def slack_response():
                 }
         ]
 
-        slack_client.chat_postMessage(channel=channel_name, text=msg, attachments=jsonify(attach))
+        slack_client.chat_postMessage(channel=channel_name, text=msg, attachments=attach)
     
     thread = Thread(target=process)  # Create background thread
     thread.start()
