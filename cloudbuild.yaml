@@ -38,9 +38,9 @@ steps:
 - name: 'docker/compose:1.22.0'
   args: ['up', '-d', '--force-recreate']
 
-# 7. Run integration tests.
-- name: 'gcr.io/cloud-builders/docker'
-  args: ['run', '--network', 'cloudbuild', '-e', 'RUNNING_IN_CLOUDBUILDER=true', '-t', '--entrypoint', 'python', '${_SERVICE_NAME}', '-m', 'pytest', '-v']
+## 7. Run integration tests.
+#- name: 'gcr.io/cloud-builders/docker'
+#  args: ['run', '--network', 'cloudbuild', '-e', 'RUNNING_IN_CLOUDBUILDER=true', '-t', '--entrypoint', 'python', '${_SERVICE_NAME}', '-m', 'pytest', '-v']
 
 # 8. Deploy the application to GCR
 - name: 'gcr.io/cloud-builders/docker'

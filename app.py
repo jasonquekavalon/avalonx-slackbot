@@ -4,7 +4,7 @@ from threading import Thread
 import time
 import os
 
-from flask import Flask, request, make_response, Response
+from flask import Flask, request, make_response, Response, jsonify, copy_current_request_context
 import requests
 from slack import WebClient
 from google.cloud import pubsub_v1, storage
@@ -51,7 +51,7 @@ def verify_slack_token(func):
         req = request.form.to_dict()
         print(req)
         request_token = req['token']
-        print(f"req token: {request_token}")
+        # print(f"req token: {request_token}")
         if SLACK_VERIFICATION_TOKEN != request_token:
             # print("Error: invalid verification token!")
             return make_response("Request contains invalid Slack verification token", 403)
@@ -70,7 +70,7 @@ def msg_validation(req):
 def slack_gcp():
     logger.info("Request received for gcp support...")
     req = request.form.to_dict()
-
+    
     def process(req, friendly_id=None):
         if "message_id" not in req['text']:
             message = f"*{req['user_name']}* from workspace *{req['team_domain']}* says: *{req['text']}*. "
@@ -108,7 +108,38 @@ def slack_gcp():
         thread = Thread(target=process, kwargs={'req': req, 'friendly_id': friendly_id})
         thread.start()
 
-        return make_response(f"Your Message ID is *{friendly_id}*. To check the status of your message, type `/avalonx-message-status {friendly_id}`. To upload a screenshot, type `/avalonx-screenshot {friendly_id}`.", 200)
+        # website = f"https://alfred-dev-1.appspot.com/?friendly_id={friendly_id}&team_id={req['team_domain']}"
+
+        msg = {
+            "text": f"Your message has been received. Your Message ID is *{friendly_id}*.",
+            "attachments": [
+                {
+                    "fallback": "You are unable to choose a game",
+                    "callback_id": "status",
+                    "color": "#3AA3E3",
+                    "attachment_type": "default",
+                    "actions": [
+                        {
+                            "name": "command",
+                            "text": "Message status",
+                            "type": "button",
+                            "value": f"{friendly_id}"
+                        },
+                        {
+                            "name": "command",
+                            "text": "Upload a screenshot",
+                            "type": "button",
+                            "url": f"https://alfred-dev-1.appspot.com/?friendly_id={friendly_id}&team_id={req['team_domain']}"
+                        },
+                    ]
+                }
+            ]
+        }
+
+        response = make_response(jsonify(msg), 200)
+        response.headers['Content-Type'] = "application/json"
+        return response
+        # return make_response(jsonify(msg), 200)
     else:
         return make_response("You're missing the required properties", 400)
 
@@ -117,9 +148,10 @@ def slack_gcp():
 # @verify_slack_token
 def slack_response():
     logger.info("Request received for response...")
-    req = request.form.to_dict()
-
-    def process(req):
+    
+    @copy_current_request_context
+    def process():
+        req = request.form.to_dict()
         friendly_id = req['text'].split()[0]  
 
         response_to_message_split = req["text"].split(maxsplit=1)[1:]
@@ -135,41 +167,95 @@ def slack_response():
         stored_responses.append(response_to_message)
         datastore_client.update_item(ds_client, "message", stored_responses, friendly_id, "response")
 
-        slack_client.chat_postMessage(channel=channel_name, text=response)
+        msg = f"*{req['user_name']}* from workspace *{req['team_domain']}* has responded to Message ID *{friendly_id}* in {req['channel_name']}: *{response_to_message}*. To respond, type `/avalonx message_id {friendly_id} <INPUT RESPONSE HERE>`."
 
-    thread = Thread(target=process, kwargs={'req': req})  # Create background thread
+        attach = [
+                {
+                    "text": "Else:",
+                    "fallback": "You are unable to choose a game",
+                    "callback_id": "response",
+                    "color": "#3AA3E3",
+                    "attachment_type": "default",
+                    "actions": [
+                        {
+                            "name": "resolve",
+                            "text": "Resolve message",
+                            "type": "button",
+                            "value": f"{friendly_id}"
+                        },
+                        {
+                            "name": "command",
+                            "text": "Upload a screenshot",
+                            "type": "button",
+                            "url": f"https://alfred-dev-1.appspot.com/?friendly_id={friendly_id}&team_id={req['team_domain']}"
+                        }
+                    ]
+                }
+        ]
+
+        slack_client.chat_postMessage(channel=channel_name, text=msg, attachments=attach)
+    
+    thread = Thread(target=process)  # Create background thread
     thread.start()
+
     return make_response("Response has been sent!", 200)
-
-
-@app.route("/get/message", methods=["GET"])
-def slack_get():
-    message_query = request.args.get("message_id")
-    # Get the message from the database using the datastore client
-    queries = datastore_client.get_item(ds_client, "message", message_query, "message")
-    return make_response(str(queries), 200)
-
 
 @app.route("/status", methods=["POST"])
 # @verify_slack_token
 def slack_status():
-    logger.info("Request received for status endpoint...")
     req = request.form.to_dict()
-    friendly_id = req['text']
-    status = datastore_client.get_item(ds_client, "message", friendly_id, "status")
+    friendly_id = req['payload'].split("value")[1].split('"')[2]
+    team_domain = req['payload'].split("domain")[1].split('"')[2]
+    callback_id = req['payload'].split("callback_id")[1].split('"')[2]
+    name = req['payload'].split("name")[1].split('"')[2]
 
-    return make_response(f"Your status for ticket with ID *{friendly_id}* is *{status}*", 200)
-#     return req['token']
-
+    if callback_id == "status" and name == "command":
+        status = datastore_client.get_item(ds_client, "message", friendly_id, 'status')
+        msg = {
+            "text": f"Your status for ticket with ID *{friendly_id}* is *{status}*. To respond, type `/avalonx message_id {friendly_id} <INPUT RESPONSE HERE>`.",
+            "attachments": [
+                {
+                    "text": "Else:",
+                    "fallback": "You are unable to choose a game",
+                    "callback_id": "status",
+                    "color": "#3AA3E3",
+                    "attachment_type": "default",
+                    "actions": [
+                        {
+                            "name": "command",
+                            "text": "Message status",
+                            "type": "button",
+                            "value": f"{friendly_id}"
+                        },
+                        {
+                            "name": "command",
+                            "text": "Upload a screenshot",
+                            "type": "button",
+                            "url": f"https://alfred-dev-1.appspot.com/?friendly_id={friendly_id}&team_id={team_domain}"
+                        },
+                        {
+                            "name": "resolve",
+                            "text": "Resolve message",
+                            "type": "button",
+                            "value": f"{friendly_id}"
+                        }
+                    ]
+                }
+            ]
+        }
+        return make_response(jsonify(msg), 200)
+    elif name == "resolve":
+        return slack_resolve_message(friendly_id)
+    else:
+        return slack_getscreenshot(friendly_id, team_domain)
 
 @app.route("/resolve_message", methods=["POST"])
 # @verify_slack_token
-def slack_resolve_message():
+def slack_resolve_message(friendly_id):
     logger.info("Request received for resolve_message...")
     req = request.form.to_dict()
 
     def process(req):
-        friendly_id = req['text'].split()[0]
         updated_status = "Completed"
         datastore_client.update_item(ds_client, "message", updated_status, friendly_id, "status")
 
@@ -180,26 +266,11 @@ def slack_resolve_message():
     thread.start()
     return make_response("Your issue has been resolved. Thank you for using the Alfred slack bot. We hope you have a nice day!", 200)
 
-
-@app.route("/screenshot", methods=["POST"])
-# @verify_slack_token
-def slack_screenshot():
-    logger.info("Request received for screenshot...")
-    req = request.form.to_dict()
-    friendly_id = req['text']
-    team_id = req["team_domain"]
-    website = f"https://alfred-dev-1.appspot.com/?friendly_id={friendly_id}&team_id={team_id}"
-    return make_response(f"Please upload your screenshots at: {website}. Thank you!", 200)
-
-
 @app.route("/getscreenshot", methods=["POST"])
-def slack_getscreenshot():
+def slack_getscreenshot(friendly_id, team_domain):
     req = request.form.to_dict()
 
     def process(req):
-        friendly_id = req['text'].split()[0]
-        team_domain = req['team_domain']
-
         storage_client = storage.Client()
         count = 1
         prefix = team_domain + "/" + friendly_id
@@ -216,7 +287,6 @@ def slack_getscreenshot():
     thread = Thread(target=process, kwargs={'req': req})
     thread.start()
     return make_response("", 200)
-
 
 def list_blobs_with_prefix(bucket_name, prefix):
     """Lists all the blobs in the bucket that begin with the prefix.
