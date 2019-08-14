@@ -190,7 +190,7 @@ def slack_response():
                 }
         ]
 
-        slack_client.chat_postMessage(channel=channel_name, text=msg, attachments=attach, headers={'Content-Type': 'application/json'})
+        slack_client.chat_postMessage(channel=channel_name, text=msg, attachments=jsonify(attach))
     
     thread = Thread(target=process)  # Create background thread
     thread.start()
@@ -204,7 +204,7 @@ def slack_status():
     logger.error("Json req")
     logger.error(req)
     req = request.form.to_dict()
-    logger.error()
+    logger.error("")
     logger.error("Form req")
     logger.error(req)
     logger.error("BATMAN")
