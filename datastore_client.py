@@ -6,6 +6,7 @@ from log import log
 
 logger = log.get_logger()
 
+
 # project_id="alfred-dev-1"
 def create_client(project_id, http=None):
     """
@@ -19,7 +20,6 @@ def create_client(project_id, http=None):
 
 
 def add_item(client, kind, data, friendly_id):
-
     # ds_id = str(uuid.uuid4())
 
     """
@@ -29,17 +29,19 @@ def add_item(client, kind, data, friendly_id):
     :param data: `dict` of item to store in Datastore
     :return:
     """
-    """ ds_id = str(uuid.uuid4()) """ # Generate a unique id for each entry
+    """ ds_id = str(uuid.uuid4()) """  # Generate a unique id for each entry
     key = client.key(kind, friendly_id)
     entity = datastore.Entity(key)
     entity.update(data)
     client.put(entity)
     return friendly_id
 
+
 def get_item(client, kind, id, item):
-    key = client.key('message', id)
+    key = client.key(kind, id)
     message = client.get(key)
-    return message.get("message")
+    return message.get(item)
+
 
 # def get_status(client, kind, id):
 #     key = client.key('message', id)
@@ -53,7 +55,6 @@ def update_item(client, kind, data, id, type):
     client.put(entity)
     return entity[type]
 
-
 # def update_status(client, kind, data, id):
 #     key = client.key(kind, id)
 #     message = client.get(key)
@@ -61,7 +62,7 @@ def update_item(client, kind, data, id, type):
 #         message[status] = message[status]
 #     message["status"] = data
 #     client.put(message)
-   
+
 #     return message["status"]
 
 # def update_message(client, kind, data, id):
@@ -81,7 +82,7 @@ def update_item(client, kind, data, id, type):
 #         message[response] = message[response]
 #     message["response"] = data
 #     client.put(message)
-   
+
 #     return message["response"]
 
 # def update_filename(client, kind, data, id):
@@ -92,4 +93,4 @@ def update_item(client, kind, data, id, type):
 #     Entity["file name"] = data
 #     client.put(Entity)
 
-#     return Entity["file name"]  
+#     return Entity["file name"]

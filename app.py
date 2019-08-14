@@ -203,21 +203,14 @@ def slack_response():
 @app.route("/status", methods=["POST"])
 # @verify_slack_token
 def slack_status():
-    req = request.json
-    logger.error("Json req")
-    logger.error(req)
     req = request.form.to_dict()
-    logger.error("")
-    logger.error("Form req")
-    logger.error(req)
-    logger.error("BATMAN")
     friendly_id = req['payload'].split("value")[1].split('"')[2]
     team_domain = req['payload'].split("domain")[1].split('"')[2]
     callback_id = req['payload'].split("callback_id")[1].split('"')[2]
     name = req['payload'].split("name")[1].split('"')[2]
 
     if callback_id == "status" and name == "command":
-        status = datastore_client.get_status(ds_client, "message", friendly_id)
+        status = datastore_client.get_item(ds_client, "message", friendly_id, 'status')
         msg = {
             "text": f"Your status for ticket with ID *{friendly_id}* is *{status}*. To respond, type `/avalonx message_id {friendly_id} <INPUT RESPONSE HERE>`.",
             "attachments": [
